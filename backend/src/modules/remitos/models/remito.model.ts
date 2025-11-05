@@ -13,7 +13,7 @@ export interface IRemito extends Document {
   validatedAt?: Date;
 }
 
-const RemitoSchema = new Schema<IRemito>(
+export const RemitoSchema = new Schema<IRemito>(
   {
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'projects', index: true, required: true },
     proveedorId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', index: true, required: true },
