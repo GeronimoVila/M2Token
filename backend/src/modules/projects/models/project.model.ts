@@ -10,7 +10,7 @@ export interface IProject extends Document {
   createdAt: Date;
 }
 
-const ProjectSchema = new Schema<IProject>(
+export const ProjectSchema = new Schema<IProject>(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', index: true, required: true },
     name: { type: String, required: true, trim: true },
