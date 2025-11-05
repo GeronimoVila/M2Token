@@ -12,7 +12,7 @@ import { Types } from 'mongoose';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel('User') private userModel: Model<IUser>,
+    @InjectModel('users') private userModel: Model<IUser>,
     @InjectModel('roles') private roleModel: Model<IRole>
   ) {}
 
