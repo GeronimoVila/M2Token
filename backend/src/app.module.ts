@@ -5,10 +5,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { ProjectsModule } from './modules/projects/projects.module';
 
 @Module({
   imports: [
-    // Configuración global del .env
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -37,10 +37,9 @@ import { UsersModule } from './modules/users/users.module';
       inject: [ConfigService],
     }),
 
-
-    // Módulos del proyecto
     AuthModule,
     UsersModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
