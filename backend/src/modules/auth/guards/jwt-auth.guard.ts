@@ -3,7 +3,6 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { verifyAccessToken } from 'src/utils/token';
 
@@ -20,10 +19,10 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const decoded = verifyAccessToken(token);
-      request.user = decoded; // adjuntamos los datos del token al request
+      request.user = decoded;
       return true;
     } catch (err) {
-      throw new ForbiddenException('Token inválido o expirado');
+      throw new UnauthorizedException('Token inválido o expirado');
     }
   }
 }

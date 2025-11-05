@@ -16,7 +16,7 @@ export interface IUser extends Document {
   comparePassword(plain: string): Promise<boolean>;
 }
 
-const UserSchema = new Schema<IUser>(
+export const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },

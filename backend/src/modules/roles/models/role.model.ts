@@ -7,7 +7,7 @@ export interface IRole extends Document {
   createdAt: Date;
 }
 
-const RoleSchema = new Schema<IRole>(
+export const RoleSchema = new Schema<IRole>(
   {
     name: { type: String, required: true, unique: true, trim: true },
     description: { type: String, default: '' },

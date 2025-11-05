@@ -1,5 +1,8 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { UserModel, IUser } from 'src/modules/users/models/user.model';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { IUser } from 'src/modules/users/models/user.model';
+import { IRole } from 'src/modules/roles/models/role.model'; 
 import { RegisterDto } from '../dtos/register.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { hashPassword, comparePassword } from 'src/utils/password';
@@ -8,20 +11,28 @@ import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
-  async register(registerDto: RegisterDto) {
-    const { name, email, password, cuil_cuit, roleId } = registerDto;
+  constructor(
+    @InjectModel('User') private userModel: Model<IUser>,
+    @InjectModel('roles') private roleModel: Model<IRole>
+  ) {}
 
-    const existingUser = await UserModel.findOne({ email });
+  async register(registerDto: RegisterDto) {
+    const { name, email, password, cuil_cuit } = registerDto; 
+
+    const existingUser = await this.userModel.findOne({ email });
     if (existingUser) throw new ConflictException('El email ya está registrado');
 
-    const hashedPassword = await hashPassword(password);
+    const userRole = await this.roleModel.findOne({ name: 'user' });
+    if (!userRole) {
+      throw new ConflictException('Rol "user" no encontrado. Ejecuta el seed.');
+    }
 
-    const user = await UserModel.create({
+    const user = await this.userModel.create({
       name,
       email,
-      password: hashedPassword,
+      password: password, 
       cuil_cuit,
-      roleId,
+      roleId: userRole._id,
     });
 
     return {
@@ -29,11 +40,11 @@ export class AuthService {
       user: { id: (user._id as Types.ObjectId).toString(), email: user.email, name: user.name },
     };
   }
-
+  
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await UserModel.findOne({ email }).select('+password').populate('roleId');
+    const user = await this.userModel.findOne({ email }).select('+password').populate('roleId');
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
     const isMatch = await comparePassword(password, user.password);
@@ -46,7 +57,8 @@ export class AuthService {
     };
 
     const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken(payload);
+
+    const refreshToken = signRefreshToken(payload); 
 
     (user as IUser).refreshToken = refreshToken;
     await user.save();
@@ -67,7 +79,7 @@ export class AuthService {
     if (!refreshToken) throw new UnauthorizedException('Refresh token requerido');
 
     const decoded = verifyRefreshToken(refreshToken);
-    const user = await UserModel.findById(decoded.id).select('+refreshToken');
+    const user = await this.userModel.findById(decoded.id).select('+refreshToken');
 
     if (!user || (user as IUser).refreshToken !== refreshToken) {
       throw new UnauthorizedException('Refresh token inválido');
@@ -83,7 +95,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await UserModel.findByIdAndUpdate(userId, { $unset: { refreshToken: '' } });
+    await this.userModel.findByIdAndUpdate(userId, { $unset: { refreshToken: '' } });
     return { message: 'Sesión cerrada exitosamente' };
   }
 }
