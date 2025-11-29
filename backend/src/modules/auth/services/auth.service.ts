@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IUser } from 'src/modules/users/models/user.model';
@@ -17,27 +17,30 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { name, email, password, cuil_cuit } = registerDto; 
+    const { name, email, password, cuil_cuit, role } = registerDto; 
 
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) throw new ConflictException('El email ya está registrado');
 
-    const userRole = await this.roleModel.findOne({ name: 'user' });
-    if (!userRole) {
-      throw new ConflictException('Rol "user" no encontrado. Ejecuta el seed.');
+    const roleFound = await this.roleModel.findOne({ name: role.toLowerCase() });
+    
+    if (!roleFound) {
+      throw new BadRequestException(`El sistema no tiene configurado el rol: ${role}`);
     }
+
+    const hashedPassword = await hashPassword(password); 
 
     const user = await this.userModel.create({
       name,
       email,
-      password: password, 
+      password: hashedPassword, 
       cuil_cuit,
-      roleId: userRole._id,
+      roleId: roleFound._id,
     });
 
     return {
       message: 'Usuario registrado correctamente',
-      user: { id: (user._id as Types.ObjectId).toString(), email: user.email, name: user.name },
+      user: { id: (user._id as Types.ObjectId).toString(), email: user.email, name: user.name, role: role },
     };
   }
   

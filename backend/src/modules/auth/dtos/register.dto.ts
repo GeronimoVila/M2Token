@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsIn } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -16,5 +16,8 @@ export class RegisterDto {
   cuil_cuit: number;
 
   @IsString()
-  roleId?: string;
+  @IsNotEmpty()
+
+  @IsIn(['empresa', 'proveedor'], { message: 'El rol debe ser empresa o proveedor' })
+  role: string; 
 }

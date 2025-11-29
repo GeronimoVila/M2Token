@@ -5,16 +5,23 @@ import { IUser } from '../models/user.model';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel('users') private readonly userModel: Model<IUser>,
-  ) {}
+  constructor(@InjectModel('users') private readonly userModel: Model<IUser>) {}
 
-  async findMe(id: string): Promise<IUser> {
-    const user = await this.userModel.findById(id).select('-password');
+  async findMe(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .populate('roleId')
+      .select('-password -refreshToken');
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
-    return user;
+
+    const userObject = user.toObject();
+    
+    return {
+      ...userObject,
+      role: (userObject.roleId as any)?.name || 'invitado', 
+    };
   }
 }

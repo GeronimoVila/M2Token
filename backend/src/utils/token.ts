@@ -1,25 +1,24 @@
-// src/utils/token.ts
-import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import ms from 'ms';
 
-const JWT_SECRET: Secret = process.env.JWT_SECRET || 'clave-ultra-secreta';
-const REFRESH_SECRET: Secret = process.env.REFRESH_TOKEN_SECRET || 'refresh-ultra-secreta';
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecreto_largo_y_unico';
+const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET || 'otro_supersecreto_mas_largo';
 
-// Convierte "15m", "7d", etc. a segundos
 const toSeconds = (value: string | undefined, fallback: string): number => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore – los tipos de `ms` no reconocen correctamente cadenas "15m", "7d"
+  // @ts-ignore
   const msValue = ms(value ?? fallback);
   return Math.floor(msValue / 1000);
 };
 
-const jwtOptions: SignOptions = { expiresIn: toSeconds(process.env.JWT_EXPIRES_IN, '15m') };
-const refreshOptions: SignOptions = { expiresIn: toSeconds(process.env.REFRESH_TOKEN_EXPIRES_IN, '7d') };
+const jwtOptions: jwt.SignOptions = { expiresIn: toSeconds(process.env.JWT_EXPIRES_IN, '15m') };
+const refreshOptions: jwt.SignOptions = { expiresIn: toSeconds(process.env.REFRESH_TOKEN_EXPIRES_IN, '7d') };
 
 export interface JwtPayload {
   id: string;
   email: string;
   role?: string;
+  name?: string;
 }
 
 export const signAccessToken = (payload: JwtPayload): string =>

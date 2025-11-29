@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import * as bcrypt from 'bcrypt';
 
 export interface IUser extends Document {
   name: string;
@@ -12,8 +11,6 @@ export interface IUser extends Document {
   datosProveedor?: Record<string, any>;
   refreshToken?: string;
   createdAt: Date;
-
-  comparePassword(plain: string): Promise<boolean>;
 }
 
 export const UserSchema = new Schema<IUser>(
@@ -37,23 +34,5 @@ export const UserSchema = new Schema<IUser>(
 
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ roleId: 1 });
-
-UserSchema.pre('save', async function (next) {
-  const user = this as IUser;
-
-  if (!user.isModified('password')) return next();
-
-  try {
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
-    next();
-  } catch (err) {
-    next(err as any);
-  }
-});
-
-UserSchema.methods.comparePassword = async function (plain: string): Promise<boolean> {
-  return bcrypt.compare(plain, this.password);
-};
 
 export const UserModel = mongoose.model<IUser>('users', UserSchema);

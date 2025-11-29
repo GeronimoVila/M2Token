@@ -1,0 +1,20 @@
+{
+  "name": "@m2token/common",
+  "version": "1.0.0",
+  "description": "Módulo compartido para M2Token",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Santiago Luján",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

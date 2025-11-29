@@ -1,8 +1,13 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { 
+  Controller, 
+  Post, 
+  Body, 
+  Res 
+} from '@nestjs/common';
+import { type Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { loginSchema, type LoginData } from '@common/schemas/auth.schema';
 import { RegisterDto } from '../dtos/register.dto';
-import { LoginDto } from '../dtos/login.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -14,19 +19,30 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginData: LoginData,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    loginSchema.parse(loginData);
+    const { accessToken, user } = await this.authService.login(loginData);
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+    return { user };
   }
 
-  @Post('refresh')
-  async refresh(@Body('refreshToken') refreshToken: string) {
-    return this.authService.refresh(refreshToken);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Req() req) {
-    const userId = req.user.id;
-    return this.authService.logout(userId);
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.cookie('access_token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      expires: new Date(0),
+    });
+    return { message: 'Sesión cerrada exitosamente' };
   }
 }
