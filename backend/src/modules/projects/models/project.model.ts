@@ -1,31 +1,28 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, Document, Types } from 'mongoose';
 
 export interface IProject extends Document {
-  userId: mongoose.Types.ObjectId;
   name: string;
   description?: string;
-  location?: string;
-  total_m2: number;
-  status: 'en_obra' | 'finalizado' | 'pausado';
+  address?: string;
+  budget?: number;
+  status: 'planning' | 'in_progress' | 'finished' | 'paused';
+  companyId: Types.ObjectId;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-export const ProjectSchema = new Schema<IProject>(
+export const ProjectSchema = new Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', index: true, required: true },
-    name: { type: String, required: true, trim: true },
-    description: { type: String, default: '' },
-    location: { type: String, default: '' },
-    total_m2: { type: Number, required: true },
-    status: { type: String, enum: ['en_obra', 'finalizado', 'pausado'], default: 'en_obra' },
-    createdAt: { type: Date, default: Date.now },
+    name: { type: String, required: true },
+    description: { type: String },
+    address: { type: String },
+    budget: { type: Number, default: 0 },
+    status: { 
+      type: String, 
+      enum: ['planning', 'in_progress', 'finished', 'paused'], 
+      default: 'planning' 
+    },
+    companyId: { type: Schema.Types.ObjectId, ref: 'companies', required: true },
   },
-  {
-    timestamps: true,
-    collection: 'projects',
-  }
+  { timestamps: true }
 );
-
-ProjectSchema.index({ userId: 1 });
-
-export const ProjectModel = mongoose.model<IProject>('projects', ProjectSchema);

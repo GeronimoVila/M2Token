@@ -46,32 +46,24 @@ export function LoginForm() {
 async function onSubmit(values: z.infer<typeof loginSchema>) {
     setFormError(null);
     try {
-      // 1. Llamada al backend
       const response = await loginUser(values);
 
-      // 🕵️‍♂️ DEBUG: Mira la consola del navegador (F12) para ver qué llega exactamente
       console.log("Respuesta del Backend:", response);
 
-      // 2. 🛡️ FIX ROBUSTO: Buscamos el token con ambos nombres posibles
       const token = response.accessToken || response.access_token;
 
       if (token) {
-        // Guardamos el token
         localStorage.setItem("access_token", token);
         
-        // (Opcional) Si el backend envía el usuario, también podrías guardarlo
-        // if (response.user) localStorage.setItem("user", JSON.stringify(response.user));
       } else {
-        // Si llegamos aquí, mira el console.log para ver por qué falló
         throw new Error("No se recibió el token de acceso. Revisa la consola.");
       }
 
-      // 3. Refrescar y Redirigir
       router.refresh(); 
       router.push("/"); 
       
     } catch (error) {
-      console.error(error); // Para ver el error real
+      console.error(error);
       if (error instanceof Error) {
         setFormError(error.message);
       } else {

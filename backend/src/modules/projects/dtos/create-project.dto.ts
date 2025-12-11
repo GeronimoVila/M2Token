@@ -1,8 +1,8 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min } from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'El nombre del proyecto es obligatorio' })
   name: string;
 
   @IsString()
@@ -11,13 +11,14 @@ export class CreateProjectDto {
 
   @IsString()
   @IsOptional()
-  location?: string;
+  address?: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  total_m2: number;
-
-  @IsEnum(['en_obra', 'finalizado', 'pausado'])
+  @Min(0)
   @IsOptional()
-  status?: 'en_obra' | 'finalizado' | 'pausado';
+  budget?: number;
+
+  @IsEnum(['planning', 'in_progress', 'finished', 'paused'])
+  @IsOptional()
+  status?: 'planning' | 'in_progress' | 'finished' | 'paused';
 }

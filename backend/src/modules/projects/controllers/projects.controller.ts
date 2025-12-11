@@ -1,26 +1,29 @@
-import { Controller, Post, Get, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { ProjectsService } from '../services/projects.service';
 import { CreateProjectDto } from '../dtos/create-project.dto';
-import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
-import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { Types } from 'mongoose';
 
 @Controller('projects')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard) // ¡Protegido!
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles('admin', 'empresa')
-  async createProject(@Body() createProjectDto: CreateProjectDto, @Req() req) {
-    const userId = req.user.id;
-    return this.projectsService.create(createProjectDto, userId);
+  async create(@Body() createProjectDto: CreateProjectDto, @Req() req: any) {
+    // Obtenemos el companyId del usuario logueado (inyectado por el Token)
+    const companyId = req.user.companyId;
+
+    return this.projectsService.create({
+      ...createProjectDto,
+      companyId: new Types.ObjectId(companyId),
+    });
   }
 
-  @Get('my-projects')
-  async getMyProjects(@Req() req) {
-    const userId = req.user.id;
-    return this.projectsService.findAllByUserId(userId);
+  @Get()
+  async findAll(@Req() req: any) {
+    // Solo devolvemos los proyectos de SU empresa
+    const companyId = req.user.companyId;
+    return this.projectsService.findAllByCompany(companyId);
   }
 }
