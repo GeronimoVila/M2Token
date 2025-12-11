@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { RemitosModule } from './modules/remitos/remitos.module';
+import { CompaniesModule } from './modules/companies/companies.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { RemitosModule } from './modules/remitos/remitos.module';
     UsersModule,
     ProjectsModule,
     RemitosModule,
+    CompaniesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

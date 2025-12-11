@@ -1,79 +1,79 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { IUser } from 'src/modules/users/models/user.model';
-import { IRole } from 'src/modules/roles/models/role.model'; 
+import { UsersService } from 'src/modules/users/services/users.service';
 import { RegisterDto } from '../dtos/register.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { hashPassword, comparePassword } from 'src/utils/password';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from 'src/utils/token';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel('users') private userModel: Model<IUser>,
-    @InjectModel('roles') private roleModel: Model<IRole>
+    private readonly usersService: UsersService,
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { name, email, password, cuil_cuit, role } = registerDto; 
+    const { name, email, password, type } = registerDto; 
 
-    const existingUser = await this.userModel.findOne({ email });
+    const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) throw new ConflictException('El email ya está registrado');
 
-    const roleFound = await this.roleModel.findOne({ name: role.toLowerCase() });
-    
-    if (!roleFound) {
-      throw new BadRequestException(`El sistema no tiene configurado el rol: ${role}`);
-    }
-
+    const initialRole = type === 'EMPRESA' ? 'empresa_owner' : 'proveedor';
     const hashedPassword = await hashPassword(password); 
 
-    const user = await this.userModel.create({
+    const user = await this.usersService.create({
       name,
       email,
       password: hashedPassword, 
-      cuil_cuit,
-      roleId: roleFound._id,
+      role: initialRole,
+      companyId: undefined, 
+    });
+
+    const tokens = await this.generateTokens(user);
+    
+    await this.usersService.update((user._id as Types.ObjectId).toString(), { 
+      refreshToken: tokens.refreshToken 
     });
 
     return {
       message: 'Usuario registrado correctamente',
-      user: { id: (user._id as Types.ObjectId).toString(), email: user.email, name: user.name, role: role },
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: { 
+        id: (user._id as Types.ObjectId).toString(), 
+        email: user.email, 
+        name: user.name, 
+        role: user.role,
+        companyId: user.companyId 
+      },
     };
   }
   
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.userModel.findOne({ email }).select('+password').populate('roleId');
+    const user = await this.usersService.findByEmailWithPassword(email);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) throw new UnauthorizedException('Credenciales inválidas');
 
-    const payload = {
-      id: (user._id as Types.ObjectId).toString(),
-      email: user.email,
-      role: (user.roleId as any)?.name || 'user',
-    };
+    const tokens = await this.generateTokens(user);
 
-    const accessToken = signAccessToken(payload);
-
-    const refreshToken = signRefreshToken(payload); 
-
-    (user as IUser).refreshToken = refreshToken;
-    await user.save();
+    await this.usersService.update((user._id as Types.ObjectId).toString(), { 
+      refreshToken: tokens.refreshToken 
+    });
 
     return {
-      accessToken,
-      refreshToken,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: {
         id: (user._id as Types.ObjectId).toString(),
         email: user.email,
         name: user.name,
-        role: payload.role,
+        role: user.role,
+        companyId: user.companyId,
       },
     };
   }
@@ -81,24 +81,49 @@ export class AuthService {
   async refresh(refreshToken: string) {
     if (!refreshToken) throw new UnauthorizedException('Refresh token requerido');
 
-    const decoded = verifyRefreshToken(refreshToken);
-    const user = await this.userModel.findById(decoded.id).select('+refreshToken');
+    try {
+      const decoded = verifyRefreshToken(refreshToken) as { sub: string; id: string; email: string };
+      const userId = decoded.sub || decoded.id; 
 
-    if (!user || (user as IUser).refreshToken !== refreshToken) {
-      throw new UnauthorizedException('Refresh token inválido');
+      const user = await this.usersService.findByIdWithRefreshToken(userId);
+
+      if (!user || user.refreshToken !== refreshToken) {
+        throw new UnauthorizedException('Refresh token inválido');
+      }
+
+      const payload = {
+        sub: (user._id as Types.ObjectId).toString(),
+        id: (user._id as Types.ObjectId).toString(),
+        email: user.email,
+        role: user.role,
+        companyId: user.companyId,
+      };
+
+      const newAccessToken = signAccessToken(payload);
+      
+      return { accessToken: newAccessToken };
+    } catch (error) {
+      throw new UnauthorizedException('Token expirado o inválido');
     }
-
-    const payload = {
-      id: (user._id as Types.ObjectId).toString(),
-      email: user.email,
-    };
-
-    const newAccessToken = signAccessToken(payload);
-    return { accessToken: newAccessToken };
   }
 
   async logout(userId: string) {
-    await this.userModel.findByIdAndUpdate(userId, { $unset: { refreshToken: '' } });
+    await this.usersService.update(userId, { refreshToken: undefined }); 
     return { message: 'Sesión cerrada exitosamente' };
+  }
+
+  private async generateTokens(user: IUser) {
+    const payload = {
+      sub: (user._id as Types.ObjectId).toString(),
+      id: (user._id as Types.ObjectId).toString(),
+      email: user.email,
+      role: user.role,
+      companyId: user.companyId
+    };
+
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    return { accessToken, refreshToken };
   }
 }

@@ -1,27 +1,30 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IUser } from '../models/user.model';
+import { BaseRepository } from '../../../common/repositories/base.repository';
 
 @Injectable()
-export class UsersService {
-  constructor(@InjectModel('users') private readonly userModel: Model<IUser>) {}
+export class UsersService extends BaseRepository<IUser> {
+  constructor(
+    @InjectModel('users') private readonly userModel: Model<IUser>
+  ) {
+    super(userModel);
+  }
 
-  async findMe(userId: string) {
-    const user = await this.userModel
-      .findById(userId)
-      .populate('roleId')
-      .select('-password -refreshToken');
+  async findByEmail(email: string): Promise<IUser | null> {
+    return this.findOne({ email });
+  }
 
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
+  async findByEmailWithPassword(email: string): Promise<IUser | null> {
+    return this.userModel.findOne({ email }).select('+password').exec();
+  }
 
-    const userObject = user.toObject();
-    
-    return {
-      ...userObject,
-      role: (userObject.roleId as any)?.name || 'invitado', 
-    };
+  async findByIdWithRefreshToken(id: string): Promise<IUser | null> {
+    return this.userModel.findById(id).select('+refreshToken').exec();
+  }
+
+  async findMe(id: string): Promise<IUser | null> {
+    return this.findById(id);
   }
 }

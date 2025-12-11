@@ -25,13 +25,18 @@ export class AuthController {
   ) {
     loginSchema.parse(loginData);
     const { accessToken, user } = await this.authService.login(loginData);
+    
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
     });
-    return { user };
+
+    return { 
+      user, 
+      accessToken
+    };
   }
 
   @Post('logout')

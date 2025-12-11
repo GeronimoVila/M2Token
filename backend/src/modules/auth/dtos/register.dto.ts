@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsIn } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength, IsEnum, IsNumber, IsOptional } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -6,18 +6,15 @@ export class RegisterDto {
   name: string;
 
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
   @IsString()
-  @MinLength(6)
+  @IsNotEmpty()
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string;
 
+  @IsEnum(['EMPRESA', 'PROVEEDOR'])
   @IsNotEmpty()
-  cuil_cuit: number;
-
-  @IsString()
-  @IsNotEmpty()
-
-  @IsIn(['empresa', 'proveedor'], { message: 'El rol debe ser empresa o proveedor' })
-  role: string; 
+  type: 'EMPRESA' | 'PROVEEDOR';
 }
