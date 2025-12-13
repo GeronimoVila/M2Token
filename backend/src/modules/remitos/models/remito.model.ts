@@ -12,6 +12,8 @@ export interface IRemito extends Document {
   validatedBy?: mongoose.Types.ObjectId;
   validatedAt?: Date;
   evidenceHash: string;
+  txHash?: string;
+  mintedAt?: Date;
 }
 
 export const RemitoSchema = new Schema<IRemito>(
@@ -32,6 +34,8 @@ export const RemitoSchema = new Schema<IRemito>(
     validatedAt: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     evidenceHash: { type: String, required: true },
+    txHash: { type: String, default: null },
+    mintedAt: { type: Date, default: null },
   },
   {
     timestamps: true,

@@ -9,6 +9,10 @@ export interface IUser extends Document {
   companyId?: mongoose.Types.ObjectId; 
   role: string; 
   walletAddress?: string;
+  cbu?: string;
+  alias?: string;
+  razonSocial?: string;
+  
   category?: string;
   address?: string;
   phone?: string;
@@ -36,6 +40,9 @@ export const UserSchema = new Schema<IUser>(
     },
     
     walletAddress: { type: String, default: null },
+    cbu: { type: String, default: null },
+    alias: { type: String, default: null },
+    razonSocial: { type: String, default: null },
     category: { type: String, default: null },
     address: { type: String, default: null },
     phone: { type: String, default: null },

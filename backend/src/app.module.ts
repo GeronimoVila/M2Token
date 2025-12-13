@@ -9,6 +9,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { RemitosModule } from './modules/remitos/remitos.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { AssignmentsModule } from './modules/project-assignments/assignments.module';
+import { BlockchainModule } from './blockchain/blockchain.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AssignmentsModule } from './modules/project-assignments/assignments.mod
     RemitosModule,
     CompaniesModule,
     AssignmentsModule,
+    BlockchainModule,
   ],
   controllers: [AppController],
   providers: [AppService],
