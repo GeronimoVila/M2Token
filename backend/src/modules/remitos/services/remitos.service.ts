@@ -4,24 +4,44 @@ import { Model } from 'mongoose';
 import { IRemito } from '../models/remito.model';
 import { CreateRemitoDto } from '../dtos/create-remito.dto';
 import { ValidateRemitoDto } from '../dtos/validate-remito.dto';
+import { IpfsService } from './ipfs.service';
 
 @Injectable()
 export class RemitosService {
   constructor(
     @InjectModel('remitos') private readonly remitoModel: Model<IRemito>,
+    private readonly ipfsService: IpfsService,
   ) {}
 
-  async create(createRemitoDto: CreateRemitoDto, proveedorId: string): Promise<IRemito> {
+
+async create(createRemitoDto: CreateRemitoDto, file: Express.Multer.File, proveedorId: string): Promise<IRemito> {
+  const cid = await this.ipfsService.uploadFile(file.buffer, file.originalname);
+
+  console.log('Intentando guardar en Mongo con CID:', cid);
+  console.log('Datos:', { ...createRemitoDto, proveedorId });
+
+  try {
     const newRemito = new this.remitoModel({
       ...createRemitoDto,
       proveedorId: proveedorId,
       estado: 'pendiente',
+      evidenceHash: cid,
     });
-    return newRemito.save();
+
+    return await newRemito.save();
+
+  } catch (error) {
+    console.error('❌ ERROR MONGO:', error);
+    throw error;
   }
+}
 
   async findMyRemitos(proveedorId: string): Promise<IRemito[]> {
-    return this.remitoModel.find({ proveedorId: proveedorId }).exec();
+    return this.remitoModel
+      .find({ proveedorId: proveedorId })
+      .populate('projectId', 'name address')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async findByProjectId(projectId: string): Promise<IRemito[]> {

@@ -55,5 +55,21 @@ export const projectsService = {
 
     const result = await res.json();
     return result.success ? result.data : result;
-  }
+  },
+
+  async getById(id: string) {
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`${API_URL}/projects/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error('Error al obtener el proyecto');
+    
+    const result = await res.json();
+    return result.success ? result.data : result;
+  },
 };

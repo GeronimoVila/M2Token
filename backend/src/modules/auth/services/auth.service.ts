@@ -56,7 +56,7 @@ export class AuthService {
     const user = await this.usersService.findByEmailWithPassword(email);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
-    const isMatch = await comparePassword(password, user.password);
+    const isMatch = await comparePassword(password, user.password || '');
     if (!isMatch) throw new UnauthorizedException('Credenciales inválidas');
 
     const tokens = await this.generateTokens(user);

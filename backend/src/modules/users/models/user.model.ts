@@ -3,16 +3,16 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
-  cuil_cuit?: number;
+  password?: string;
+  cuit?: string; 
   
   companyId?: mongoose.Types.ObjectId; 
-  
   role: string; 
-  
   walletAddress?: string;
-  
-  datosProveedor?: Record<string, any>; 
+  category?: string;
+  address?: string;
+  phone?: string;
+  website?: string;
   
   refreshToken?: string;
   isActive: boolean;
@@ -24,7 +24,7 @@ export const UserSchema = new Schema<IUser>(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
-    cuil_cuit: { type: Number },
+    cuit: { type: String, default: null }, 
     
     companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'companies', default: null, index: true },
     
@@ -36,8 +36,10 @@ export const UserSchema = new Schema<IUser>(
     },
     
     walletAddress: { type: String, default: null },
-    
-    datosProveedor: { type: Object, default: null },
+    category: { type: String, default: null },
+    address: { type: String, default: null },
+    phone: { type: String, default: null },
+    website: { type: String, default: null },
     
     refreshToken: { type: String, select: false },
     isActive: { type: Boolean, default: true },
@@ -51,5 +53,6 @@ export const UserSchema = new Schema<IUser>(
 
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ companyId: 1 });
+UserSchema.index({ cuit: 1 }); 
 
 export const UserModel = mongoose.model<IUser>('users', UserSchema);

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { projectsService, Project } from '@/services/projectsService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, MapPin, DollarSign, Loader2, FolderKanban } from 'lucide-react';
+import { Plus, MapPin, DollarSign, Loader2, FolderKanban, UserPlus } from 'lucide-react';
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,7 +30,6 @@ export default function ProjectsPage() {
     }
   }
 
-  // Ajustamos los colores de los estados para que armonicen con la paleta
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'planning': return 'bg-brand-light/30 text-brand-blue border-brand-light/50';
@@ -59,16 +60,12 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Encabezado */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-3xl font-bold tracking-tight text-brand-dark">Proyectos</h2>
-          <p className="text-gray-500">
-            Gestiona y monitorea tus obras activas.
-          </p>
+          <p className="text-gray-500">Gestiona y monitorea tus obras activas.</p>
         </div>
         <Link href="/companies/projects/new">
-          {/* Botón Salmón idéntico al diseño */}
           <Button className="bg-brand-salmon hover:bg-brand-salmon/90 text-white shadow-md shadow-brand-salmon/20">
             <Plus className="mr-2 h-4 w-4" /> Nuevo proyecto
           </Button>
@@ -81,7 +78,6 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {/* Grid de Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {projects.length === 0 && !error ? (
           <div className="col-span-full flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 rounded-xl bg-white text-gray-400">
@@ -129,9 +125,26 @@ export default function ProjectsPage() {
                 </div>
               </CardContent>
               
-              <CardFooter className="bg-gray-50/50 pt-3 pb-3 border-t border-gray-100">
-                <Button variant="ghost" className="w-full text-sm h-8 text-brand-blue hover:text-brand-blue hover:bg-brand-blue/10" size="sm">
+              <CardFooter className="bg-gray-50/50 pt-3 pb-3 border-t border-gray-100 gap-2">
+                <Button 
+                    variant="ghost" 
+                    className="flex-1 text-sm h-8 text-brand-blue hover:text-brand-blue hover:bg-brand-blue/10" 
+                    size="sm"
+                    onClick={() => router.push(`/companies/projects/${project._id}`)}
+                >
                   Ver detalles
+                </Button>
+
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 mt-0 border-brand-blue/20 text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/companies/projects/${project._id}/assign`);
+                    }}
+                >
+                    <UserPlus className="mr-2 h-4 w-4" /> Asignar
                 </Button>
               </CardFooter>
             </Card>

@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty, IsNumber, IsDateString, IsMongoId } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateRemitoDto {
   @IsMongoId()
@@ -13,6 +14,7 @@ export class CreateRemitoDto {
   @IsNotEmpty()
   descripcion: string;
 
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   monto: number;

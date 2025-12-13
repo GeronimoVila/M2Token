@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Patch, Body, Req, UseGuards, Param } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Req, UseGuards, Param, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ParseMongoIdPipe } from 'src/utils/pipes/parse-mongo-id.pipe';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
@@ -14,36 +15,45 @@ export class RemitosController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles('proveedor')
-  async createRemito(@Body() createRemitoDto: CreateRemitoDto, @Req() req) {
-    const proveedorId = req.user.id;
-    return this.remitosService.create(createRemitoDto, proveedorId);
+  @Roles('proveedor', 'PROVEEDOR')
+  @UseInterceptors(FileInterceptor('file'))
+  async createRemito(
+    @Body() createRemitoDto: CreateRemitoDto, 
+    @Req() req,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    if (!file) {
+      throw new BadRequestException('El archivo PDF del remito es obligatorio');
+    }
+    
+    const proveedorId = req.user.userId;
+    return this.remitosService.create(createRemitoDto, file, proveedorId);
   }
 
   @Get('my-remitos')
   @UseGuards(RolesGuard)
-  @Roles('proveedor')
+  @Roles('proveedor', 'PROVEEDOR')
   async getMyRemitos(@Req() req) {
-    const proveedorId = req.user.id;
+    const proveedorId = req.user.userId; 
     return this.remitosService.findMyRemitos(proveedorId);
   }
 
   @Get('project/:projectId')
   @UseGuards(RolesGuard)
-  @Roles('admin', 'empresa')
+  @Roles('admin', 'empresa', 'EMPRESA', 'empresa_owner') 
   async getRemitosByProject(@Param('projectId', ParseMongoIdPipe) projectId: string) {
     return this.remitosService.findByProjectId(projectId);
   }
 
   @Patch(':id/validate')
   @UseGuards(RolesGuard)
-  @Roles('admin', 'empresa')
+  @Roles('admin', 'empresa', 'EMPRESA', 'empresa_owner')
   async validateRemito(
     @Param('id', ParseMongoIdPipe) id: string,
     @Body() validateDto: ValidateRemitoDto,
     @Req() req,
   ) {
-    const validatorId = req.user.id;
+    const validatorId = req.user.userId;
     return this.remitosService.validate(id, validateDto, validatorId);
   }
 }

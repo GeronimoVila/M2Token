@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { RemitosModule } from './modules/remitos/remitos.module';
 import { CompaniesModule } from './modules/companies/companies.module';
+import { AssignmentsModule } from './modules/project-assignments/assignments.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { CompaniesModule } from './modules/companies/companies.module';
     ProjectsModule,
     RemitosModule,
     CompaniesModule,
+    AssignmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
