@@ -101,4 +101,30 @@ export class BlockchainService implements OnModuleInit {
       throw error;
     }
   }
+
+  async burnTokens(userWallet: string, projectId: number, amount: number) {
+    try {
+      this.logger.log(`Iniciando Quema (Burn): ${amount} tokens de ${userWallet} (Proyecto ${projectId})`);
+
+      const tx = await this.contract.adminBurn(
+        userWallet,
+        projectId,
+        amount
+      );
+
+      this.logger.log(`Transacción de quema enviada. Hash: ${tx.hash}`);
+      const receipt = await tx.wait();
+      this.logger.log(`Quema confirmada en bloque ${receipt.blockNumber}`);
+
+      return {
+        success: true,
+        txHash: tx.hash,
+        blockNumber: receipt.blockNumber
+      };
+
+    } catch (error) {
+      this.logger.error(`Error en Burn: ${error.message}`);
+      throw error;
+    }
+  }
 }

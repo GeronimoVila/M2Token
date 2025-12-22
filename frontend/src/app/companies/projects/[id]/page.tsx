@@ -7,6 +7,7 @@ import { remitosService } from '@/services/remitosService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import RemitosList from '@/components/companies/RemitosList';
+import { ArrowRightLeft } from 'lucide-react';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -77,6 +78,15 @@ export default function ProjectDashboardPage() {
           <h1 className="text-3xl font-bold text-brand-dark">{project.name}</h1>
           <p className="text-gray-500">Panel de control de la obra.</p>
         </div>
+        
+        {/* 👇 AQUÍ ESTABA EL ERROR: Cambiado /dashboard por /companies */}
+        <Button 
+          variant="outline" 
+          onClick={() => router.push(`/companies/projects/${projectId}/canjes`)}
+        >
+          <ArrowRightLeft className="mr-2 h-4 w-4" /> Gestionar Canjes
+        </Button>
+
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

@@ -55,6 +55,14 @@ contract M2Token is ERC1155, AccessControl, ERC1155Pausable, ERC1155Burnable, ER
         _mintBatch(to, idsProyectos, amounts, "");
     }
 
+    /**
+     * @dev Permite al Admin (Empresa) quemar tokens de un usuario tras pagarle off-chain.
+     */
+    function adminBurn(address account, uint256 id, uint256 amount) public onlyRole(MINTER_ROLE) whenNotPaused {
+        _burn(account, id, amount);
+        emit TokenCanjeado(account, id, amount);
+    }
+
     function canjear(uint256 idProyecto, uint256 amount) public whenNotPaused {
         require(balanceOf(msg.sender, idProyecto) >= amount, "Saldo insuficiente");
         burn(msg.sender, idProyecto, amount);

@@ -10,6 +10,7 @@ import { RemitosModule } from './modules/remitos/remitos.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { AssignmentsModule } from './modules/project-assignments/assignments.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
+import { CanjesModule } from './modules/canjes/canjes.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { BlockchainModule } from './blockchain/blockchain.module';
     CompaniesModule,
     AssignmentsModule,
     BlockchainModule,
+    CanjesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

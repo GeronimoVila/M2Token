@@ -16,7 +16,8 @@ import {
   XCircle, 
   Clock,
   Coins, 
-  Wallet 
+  Wallet,
+  ArrowRightLeft
 } from 'lucide-react';
 
 export default function ProviderProjectDetail() {
@@ -124,9 +125,15 @@ export default function ProviderProjectDetail() {
             </div>
         </div>
         
-        <Button onClick={() => router.push(`/proveedor/remitos/new?projectId=${projectId}`)}>
-            <Plus className="mr-2 h-4 w-4" /> Nuevo Remito
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push(`/proveedor/projects/${projectId}/canjes`)}>
+                <ArrowRightLeft className="mr-2 h-4 w-4" /> Canjes / Retiros
+            </Button>
+
+            <Button onClick={() => router.push(`/proveedor/remitos/new?projectId=${projectId}`)}>
+                <Plus className="mr-2 h-4 w-4" /> Nuevo Remito
+            </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,10 +151,9 @@ export default function ProviderProjectDetail() {
                </div>
             ) : balanceData ? (
               <div className="space-y-1">
-               <div className="text-3xl font-bold text-white">
-                {/* Agregamos una validación para que si es 0, muestre 0 */}
-                {balanceData.m2 !== undefined ? balanceData.m2 : '--'} m²
-              </div>
+                <div className="text-3xl font-bold text-white">
+                 {balanceData.m2 !== undefined ? balanceData.m2 : '--'} m²
+               </div>
                 <div className="flex flex-col gap-1 mt-2">
                   <p className="text-xs text-slate-400 font-mono">
                     Balance: {balanceData.balance} Tokens M2T

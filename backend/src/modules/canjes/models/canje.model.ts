@@ -1,44 +1,63 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface ICanje extends Document {
-  tokenId: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
-  tipo: 'proveedor->empresa' | 'empresa->proveedor' | 'proveedor->proveedor';
-  cantidad: number;
-  fecha: Date;
-  estado: 'pendiente' | 'completado' | 'rechazado';
-  hashOnChain?: string;
-  createdAt: Date;
+export enum TipoCanje {
+  DINERO = 'DINERO',
+  ACTIVO = 'ACTIVO'
 }
 
-const CanjeSchema = new Schema<ICanje>(
+export enum EstadoCanje {
+  PENDIENTE = 'PENDIENTE',
+  APROBADO_PAGANDO = 'APROBADO_PAGANDO',
+  COMPLETADO = 'COMPLETADO',
+  RECHAZADO = 'RECHAZADO'
+}
+
+export interface ICanje extends Document {
+  proveedorId: mongoose.Types.ObjectId;  
+  projectId: mongoose.Types.ObjectId;    
+  amountTokens: number;
+  tipo: TipoCanje;
+  valorTokenAlMomento: number;
+  montoTotalFiat?: number;
+  descripcionActivo?: string;
+  estado: EstadoCanje;
+  evidenciaPagoUrl?: string;
+  motivoRechazo?: string;
+  txHash?: string;
+  burnedAt?: Date;                       
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const CanjeSchema = new Schema<ICanje>(
   {
-    tokenId: { type: mongoose.Schema.Types.ObjectId, ref: 'tokens', index: true, required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', index: true, required: true },
-    tipo: {
-      type: String,
-      enum: ['proveedor->empresa', 'empresa->proveedor', 'proveedor->proveedor'],
-      required: true,
+    proveedorId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true, index: true },
+    projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'projects', required: true, index: true },
+    
+    amountTokens: { type: Number, required: true, min: 1 },
+    tipo: { type: String, enum: Object.values(TipoCanje), required: true },
+    
+    valorTokenAlMomento: { type: Number, default: 0 }, 
+    montoTotalFiat: { type: Number },
+    descripcionActivo: { type: String },
+    
+    estado: { 
+      type: String, 
+      enum: Object.values(EstadoCanje), 
+      default: EstadoCanje.PENDIENTE,
+      index: true
     },
-    cantidad: { type: Number, required: true, min: 0 },
-    fecha: { type: Date, required: true },
-    estado: {
-      type: String,
-      enum: ['pendiente', 'completado', 'rechazado'],
-      default: 'pendiente',
-      index: true,
-    },
-    hashOnChain: { type: String, default: null },
-    createdAt: { type: Date, default: Date.now },
+    
+    evidenciaPagoUrl: { type: String },
+    motivoRechazo: { type: String },
+    
+    txHash: { type: String },
+    burnedAt: { type: Date },
   },
   {
     timestamps: true,
     collection: 'canjes',
   }
 );
-
-CanjeSchema.index({ tokenId: 1 });
-CanjeSchema.index({ userId: 1 });
-CanjeSchema.index({ estado: 1 });
 
 export const CanjeModel = mongoose.model<ICanje>('canjes', CanjeSchema);
