@@ -15,8 +15,7 @@ export default function ProveedorDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/auth/login');
+      const token = localStorage.getItem('access_token') || '';
 
       try {
         const [remitos, projects] = await Promise.all([
@@ -33,7 +32,8 @@ export default function ProveedorDashboard() {
           projectsCount: projectsArray.length,
         });
       } catch (error) {
-        console.error(error);
+        console.error("Error cargando dashboard:", error);
+        router.push('/auth/login');
       } finally {
         setLoading(false);
       }

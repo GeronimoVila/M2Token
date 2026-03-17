@@ -22,8 +22,6 @@ export class ProjectsController {
 
   @Get()
   async findAll(@Req() req: any) {
-    // Si es proveedor, devolvemos array vacío o todos (según tu lógica), 
-    // pero evitamos el error de "companyId undefined"
     if (req.user.role === 'proveedor') {
        return []; 
     }
@@ -35,14 +33,10 @@ export class ProjectsController {
   async findOne(@Param('id') id: string, @Req() req: any) {
     const user = req.user;
 
-    // 👇 LA CORRECCIÓN CLAVE 👇
-    // Verificamos si el rol es 'proveedor'
     if (user.role === 'proveedor') {
-       // ✅ Usamos 'findById' (método base) que NO verifica dueño
        return this.projectsService.findById(id); 
     }
 
-    // Si es empresa, usamos la lógica estricta
     const companyId = user.companyId;
     return this.projectsService.findOneById(id, companyId);
   }

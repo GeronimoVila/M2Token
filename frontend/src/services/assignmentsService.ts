@@ -10,13 +10,16 @@ export interface CreateAssignmentData {
 export const assignmentsService = {
   async assignProvider(data: CreateAssignmentData) {
     const token = localStorage.getItem('access_token');
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${API_URL}/assignments`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
       body: JSON.stringify(data),
+      credentials: 'include',
     });
 
     if (!res.ok) {
@@ -30,11 +33,14 @@ export const assignmentsService = {
 
   async getMyAssignments() {
     const token = localStorage.getItem('access_token');
+    
+    const headers: HeadersInit = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${API_URL}/assignments/my-projects`, { 
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
+      credentials: 'include',
     });
     
     if (!res.ok) throw new Error('Error al cargar asignaciones');
@@ -45,13 +51,16 @@ export const assignmentsService = {
   getMyProjects: async (token: string) => {
     try {
       const response = await axios.get(`${API_URL}/assignments/my-projects`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
       });
+      
       if (response.data && response.data.data) {
         return response.data.data;
       }
       return response.data;
     } catch (error: any) {
+      console.error("Error obteniendo proyectos:", error);
       throw error.response?.data || { message: 'Error al obtener proyectos' };
     }
   },

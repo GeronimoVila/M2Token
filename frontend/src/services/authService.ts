@@ -14,6 +14,10 @@ export interface RegisterData {
   type: "EMPRESA" | "PROVEEDOR";
 }
 
+export interface CompleteSocialData {
+  type: "EMPRESA" | "PROVEEDOR";
+}
+
 export async function loginUser(data: LoginData) {
   try {
     const response = await fetch(`${NESTJS_BACKEND_URL}/auth/login`, {
@@ -24,20 +28,12 @@ export async function loginUser(data: LoginData) {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Credenciales inválidas.");
-      }
+      if (response.status === 401) throw new Error("Credenciales inválidas.");
       throw new Error("Error en el servidor.");
     }
 
     const result = await response.json();
-
-    // 🔴 FIX: Si la respuesta viene envuelta por el Interceptor, devolvemos solo la data
-    if (result.success && result.data) {
-      return result.data;
-    }
-
-    return result;
+    return result.success && result.data ? result.data : result;
   } catch (error) {
     console.error("Error en loginUser:", error);
     throw error;
@@ -55,21 +51,36 @@ export async function registerUser(data: RegisterData) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      // Si el error también viene envuelto (por el ExceptionFilter), extraemos el mensaje
       const errorMessage = errorData.error || errorData.message || "Error al registrar usuario.";
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
-
-    // 🔴 FIX: Desempaquetado para consistencia
-    if (result.success && result.data) {
-      return result.data;
-    }
-
-    return result;
+    return result.success && result.data ? result.data : result;
   } catch (error) {
     console.error("Error en registerUser:", error);
+    throw error;
+  }
+}
+
+export async function completeSocialRegistration(data: CompleteSocialData) {
+  try {
+    const response = await fetch(`${NESTJS_BACKEND_URL}/auth/complete-social-registration`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error al completar el perfil.");
+    }
+
+    const result = await response.json();
+    return result.success && result.data ? result.data : result;
+  } catch (error) {
+    console.error("Error en completeSocialRegistration:", error);
     throw error;
   }
 }

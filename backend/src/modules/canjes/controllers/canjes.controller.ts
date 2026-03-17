@@ -13,22 +13,21 @@ export class CanjesController {
   @Post()
   @Roles('proveedor')
   async solicitarCanje(@Req() req, @Body() dto: CreateCanjeDto) {
-    const userId = req.user.userId || req.user.sub || req.user._id;
+    const userId = req.user.id;
     return this.canjesService.solicitarCanje(userId, dto);
   }
 
   @Get('my-canjes')
   @Roles('proveedor')
   async getMyCanjes(@Req() req) {
-    const userId = req.user.userId || req.user.sub || req.user._id;
+    const userId = req.user.id;
     return this.canjesService.findMyCanjes(userId);
   }
-
 
   @Post(':id/confirm-payment')
   @Roles('empresa_owner', 'empresa_admin', 'superadmin')
   async confirmarYQuemar(@Req() req, @Param('id') canjeId: string) {
-    const adminId = req.user.userId || req.user.sub;
+    const adminId = req.user.id;
     
     return this.canjesService.confirmarPagoYQuemar(canjeId, adminId);
   }
@@ -37,8 +36,4 @@ export class CanjesController {
   async getByProject(@Param('projectId') projectId: string) {
     return this.canjesService.findAll({ projectId });
   }
-
-  // @Get('pending')
-  // @Roles('empresa_owner', 'empresa_admin')
-  // async getPendingCanjes() { ... }
 }

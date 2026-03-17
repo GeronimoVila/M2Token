@@ -24,22 +24,20 @@ export default function ProviderProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/auth/login');
+      const token = localStorage.getItem('access_token') || '';
       
       try {
-        try {
-            const user = await usersService.getMe(token);
-            setFormData({
-                razonSocial: user.datosProveedor?.razonSocial || '',
-                cuil: user.datosProveedor?.cuil || '',
-                cbu: user.datosProveedor?.cbu || '',
-                alias: user.datosProveedor?.alias || '',
-                walletAddress: user.walletAddress || '',
-            });
-        } catch (e) {
-            console.log("No se pudo cargar perfil previo o es la primera vez.");
-        }
+        const user = await usersService.getMe(token);
+        setFormData({
+            razonSocial: user.datosProveedor?.razonSocial || '',
+            cuil: user.datosProveedor?.cuil || '',
+            cbu: user.datosProveedor?.cbu || '',
+            alias: user.datosProveedor?.alias || '',
+            walletAddress: user.walletAddress || '',
+        });
+      } catch (e) {
+        console.error("No se pudo cargar perfil previo o no hay sesión activa.");
+        router.push('/auth/login');
       } finally {
         setLoading(false);
       }
@@ -50,11 +48,9 @@ export default function ProviderProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token') || '';
     
     try {
-      if (!token) throw new Error("No hay sesión");
-      
       await usersService.updateProfile(formData, token);
       alert("✅ Perfil actualizado correctamente");
     } catch (error: any) {

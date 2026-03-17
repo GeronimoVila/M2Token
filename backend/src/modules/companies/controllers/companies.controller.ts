@@ -10,14 +10,14 @@ export class CompaniesController {
 
   @Post()
   async create(@Body() createCompanyDto: CreateCompanyDto, @Req() req: any) {
-    const userId = req.user.userId || req.user._id || req.user.sub; 
+    const userId = req.user.id; 
     
     return this.companiesService.createCompany(createCompanyDto, userId);
   }
 
   @Get('my-company')
   async getMyCompany(@Req() req: any) {
-    const userId = req.user.userId || req.user._id || req.user.sub;
+    const userId = req.user.id;
     return this.companiesService.findByOwner(userId);
   }
 }

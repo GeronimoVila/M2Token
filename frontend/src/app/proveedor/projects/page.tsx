@@ -14,14 +14,14 @@ export default function MyProjectsPage() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/auth/login');
+      const token = localStorage.getItem('access_token') || '';
       
       try {
         const data = await assignmentsService.getMyProjects(token);
         setAssignments(data || []);
       } catch (error) {
-        console.error(error);
+        console.error("Error al cargar proyectos:", error);
+        router.push('/auth/login');
       } finally {
         setLoading(false);
       }
@@ -29,7 +29,7 @@ export default function MyProjectsPage() {
     fetchProjects();
   }, [router]);
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-brand-blue" /></div>;
 
   return (
     <div className="container py-8 space-y-6">

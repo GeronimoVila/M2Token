@@ -28,6 +28,7 @@ export const remitosService = {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
+        withCredentials: true,
       });
       return response.data;
     } catch (error: any) {
@@ -51,6 +52,7 @@ export const remitosService = {
     try {
       const response = await axios.get(`${API_URL}/remitos/project/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
 
       if (response.data && response.data.data && Array.isArray(response.data.data)) {
@@ -59,7 +61,7 @@ export const remitosService = {
       return response.data; 
       
     } catch (error: any) {
-      console.error("💥 Error Axios:", error.response?.status, error.response?.data);
+      console.error("Error Axios:", error.response?.status, error.response?.data);
       throw error.response?.data || { message: 'Error al obtener remitos' };
     }
   },
@@ -69,7 +71,10 @@ export const remitosService = {
       const response = await axios.patch(
         `${API_URL}/remitos/${id}/validate`,
         { estado }, 
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
       return response.data;
     } catch (error: any) {
@@ -81,6 +86,7 @@ export const remitosService = {
     try {
       const response = await axios.get(`${API_URL}/remitos/my-remitos`, {
         headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
 
       if (response.data && response.data.data && Array.isArray(response.data.data)) {

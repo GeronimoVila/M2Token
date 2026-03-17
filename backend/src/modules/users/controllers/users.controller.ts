@@ -10,14 +10,14 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req: any) {
-    const userId = req.user.userId || req.user.sub || req.user.id;
+    const userId = req.user.id;
     return this.usersService.findMe(userId);
   }
 
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
   async updateProfile(@Req() req: any, @Body() dto: UpdateProfileDto) {
-    const userId = req.user.userId || req.user.sub || req.user.id;
+    const userId = req.user.id;
     return this.usersService.updateProfile(userId, dto); 
   }
 

@@ -6,12 +6,16 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/auth') && token) return NextResponse.redirect(new URL('/', request.url));
-  if (pathname.startsWith('/auth') || pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.startsWith('/favicon.ico')) {
+  if (pathname.startsWith('/_next') || pathname.startsWith('/static') || pathname.startsWith('/favicon.ico')) {
     return NextResponse.next();
   }
 
-  if (!token) return NextResponse.redirect(new URL('/auth/login', request.url));
+  if (!token) {
+    if (!pathname.startsWith('/auth')) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+    return NextResponse.next();
+  }
 
   try {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'secretKey');
@@ -19,6 +23,17 @@ export async function middleware(request: NextRequest) {
 
     const role = payload.role as string;
     const companyId = payload.companyId as string | null;
+
+    if (role === 'user') {
+      if (pathname !== '/auth/complete-profile') {
+        return NextResponse.redirect(new URL('/auth/complete-profile', request.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (pathname.startsWith('/auth') && pathname !== '/auth/complete-profile') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
 
     if (pathname.startsWith('/admin')) {
       if (role !== 'superadmin') return NextResponse.redirect(new URL('/unauthorized', request.url));
@@ -29,16 +44,13 @@ export async function middleware(request: NextRequest) {
     }
 
     if (pathname.startsWith('/companies')) {
-      if (!role.startsWith('empresa')) {
-        return NextResponse.redirect(new URL('/unauthorized', request.url));
-      }
-
+      if (!role.startsWith('empresa')) return NextResponse.redirect(new URL('/unauthorized', request.url));
+      
       if (role === 'empresa_owner' && !companyId) {
         if (pathname !== '/companies/onboarding') {
           return NextResponse.redirect(new URL('/companies/onboarding', request.url));
         }
       }
-
       if (role === 'empresa_owner' && companyId && pathname === '/companies/onboarding') {
          return NextResponse.redirect(new URL('/companies/dashboard', request.url));
       }
@@ -47,7 +59,6 @@ export async function middleware(request: NextRequest) {
     if (pathname === '/') {
       if (role === 'superadmin') return NextResponse.redirect(new URL('/admin', request.url));
       if (role === 'proveedor') return NextResponse.redirect(new URL('/proveedor', request.url));
-      
       if (role.startsWith('empresa')) {
         if (role === 'empresa_owner' && !companyId) {
            return NextResponse.redirect(new URL('/companies/onboarding', request.url));

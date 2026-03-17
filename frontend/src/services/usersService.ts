@@ -12,13 +12,17 @@ export interface UserProfileData {
 
 export const usersService = {
   async getProviders() {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token') || '';
+    
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${API_URL}/users/providers`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
+      credentials: 'include',
     });
 
     if (!res.ok) throw new Error('Error al cargar proveedores');
@@ -29,14 +33,16 @@ export const usersService = {
 
   getMe: async (token: string) => {
     const response = await axios.get(`${API_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
     });
-    return response.data;
+    return response.data.data || response.data;
   },
 
   updateProfile: async (data: UserProfileData, token: string) => {
     const response = await axios.patch(`${API_URL}/users/profile`, data, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
     });
     return response.data;
   },

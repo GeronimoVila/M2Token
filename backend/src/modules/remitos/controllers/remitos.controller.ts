@@ -26,7 +26,7 @@ export class RemitosController {
       throw new BadRequestException('El archivo PDF del remito es obligatorio');
     }
     
-    const proveedorId = req.user.userId;
+    const proveedorId = req.user.id;
     return this.remitosService.create(createRemitoDto, file, proveedorId);
   }
 
@@ -34,7 +34,7 @@ export class RemitosController {
   @UseGuards(RolesGuard)
   @Roles('proveedor', 'PROVEEDOR')
   async getMyRemitos(@Req() req) {
-    const proveedorId = req.user.userId; 
+    const proveedorId = req.user.id; 
     return this.remitosService.findMyRemitos(proveedorId);
   }
 
@@ -53,7 +53,7 @@ export class RemitosController {
     @Body() validateDto: ValidateRemitoDto,
     @Req() req,
   ) {
-    const validatorId = req.user.userId;
+    const validatorId = req.user.id;
     return this.remitosService.validate(id, validateDto, validatorId);
   }
 }

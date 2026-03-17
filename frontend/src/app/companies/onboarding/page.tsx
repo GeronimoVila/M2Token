@@ -126,7 +126,7 @@ export default function OnboardingPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre de Fantasía *</FormLabel>
+                      <FormLabel>Nombre de la empresa *</FormLabel>
                       <FormControl>
                         <Input placeholder="Tech Solutions" {...field} />
                       </FormControl>
