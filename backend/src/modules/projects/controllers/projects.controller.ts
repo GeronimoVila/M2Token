@@ -3,11 +3,15 @@ import { ProjectsService } from '../services/projects.service';
 import { CreateProjectDto } from '../dtos/create-project.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Types } from 'mongoose';
+import { AssignmentsService } from '../../project-assignments/services/assignments.service';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly assignmentsService: AssignmentsService
+  ) {}
 
   @Post()
   async create(@Body() createProjectDto: CreateProjectDto, @Req() req: any) {
@@ -34,7 +38,16 @@ export class ProjectsController {
     const user = req.user;
 
     if (user.role === 'proveedor') {
-       return this.projectsService.findById(id); 
+      const isAssigned = await this.assignmentsService.findOne({
+        projectId: new Types.ObjectId(id),
+        providerId: new Types.ObjectId(user.id)
+      });
+
+      if (!isAssigned) {
+        throw new ForbiddenException('Acceso denegado: No estás asignado a esta obra.');
+      }
+
+      return this.projectsService.findById(id); 
     }
 
     const companyId = user.companyId;

@@ -29,8 +29,8 @@ export default function ProjectDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchRemitos = useCallback(async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token || !projectId) return;
+    const token = localStorage.getItem('access_token') || '';
+    if (!projectId) return;
 
     try {
       const data = await remitosService.getByProject(projectId, token);
@@ -79,7 +79,6 @@ export default function ProjectDashboardPage() {
           <p className="text-gray-500">Panel de control de la obra.</p>
         </div>
         
-        {/* 👇 AQUÍ ESTABA EL ERROR: Cambiado /dashboard por /companies */}
         <Button 
           variant="outline" 
           onClick={() => router.push(`/companies/projects/${projectId}/canjes`)}

@@ -29,10 +29,10 @@ export default function ProviderProfilePage() {
       try {
         const user = await usersService.getMe(token);
         setFormData({
-            razonSocial: user.datosProveedor?.razonSocial || '',
-            cuil: user.datosProveedor?.cuil || '',
-            cbu: user.datosProveedor?.cbu || '',
-            alias: user.datosProveedor?.alias || '',
+            razonSocial: user.razonSocial || user.datosProveedor?.razonSocial || '',
+            cuil: user.cuit || user.cuil || user.datosProveedor?.cuil || '',
+            cbu: user.cbu || user.datosProveedor?.cbu || '',
+            alias: user.alias || user.datosProveedor?.alias || '',
             walletAddress: user.walletAddress || '',
         });
       } catch (e) {

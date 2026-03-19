@@ -34,15 +34,20 @@ export default function ProviderProjectDetail() {
 
   useEffect(() => {
     const initData = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/auth/login');
+      const token = localStorage.getItem('access_token') || '';
 
       try {
+        try {
+          await api.get(`/projects/${projectId}`);
+        } catch (error) {
+          console.error("Acceso denegado. No estás asignado a esta obra.");
+          router.push('/proveedor/projects');
+          return;
+        }
+
         const userRes = await api.get('/users/me');
-        
         const userData = userRes.data.data || userRes.data; 
 
-        console.log("👤 Usuario procesado:", userData);
         setUser(userData);
 
         const allMyRemitos = await remitosService.getMyRemitos(token);
@@ -56,12 +61,17 @@ export default function ProviderProjectDetail() {
 
       } catch (error) {
         console.error("Error inicializando datos:", error);
+        if ((error as any)?.response?.status === 401) {
+          router.push('/auth/login');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    initData();
+    if (projectId) {
+      initData();
+    }
   }, [projectId, router]);
 
   useEffect(() => {
@@ -108,7 +118,7 @@ export default function ProviderProjectDetail() {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary" /></div>;
+    return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-brand-blue" /></div>;
   }
 
   return (
@@ -116,7 +126,7 @@ export default function ProviderProjectDetail() {
       
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <Button variant="ghost" size="icon" onClick={() => router.push('/proveedor/projects')}>
                 <ArrowLeft className="w-5 h-5"/>
             </Button>
             <div>
@@ -203,14 +213,14 @@ export default function ProviderProjectDetail() {
                     </tr>
                 ) : (
                     remitos.map((r) => (
-                        <tr key={r._id} className="hover:bg-gray-50/50 text-slate-100">
+                        <tr key={r._id} className="hover:bg-gray-50/50 text-slate-800">
                             <td className="px-4 py-3">
                                 {new Date(r.fechaEntrega).toLocaleDateString()}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs">
                                 {r.numeroRemito}
                             </td>
-                            <td className="px-4 py-3 font-bold text-slate-100">
+                            <td className="px-4 py-3 font-bold text-slate-800">
                                 {r.monto.toLocaleString()} m²
                             </td>
                             <td className="px-4 py-3">
@@ -218,7 +228,7 @@ export default function ProviderProjectDetail() {
                             </td>
                             <td className="px-4 py-3">
                                 <a 
-                                    href={`https://gateway.pinata.cloud/ipfs/${r.evidenceHash}`} 
+                                    href={`https://gateway.pinata.cloud/ipfs/${r.evidenceHash || r.pdfCID}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"

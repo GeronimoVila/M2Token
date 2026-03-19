@@ -18,12 +18,15 @@ export interface CreateProjectData {
   status?: string;
 }
 
-function getAuthHeaders() {
-  const token = localStorage.getItem('access_token');
-  return {
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('access_token') || '';
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
   };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 export const projectsService = {
@@ -58,13 +61,10 @@ export const projectsService = {
   },
 
   async getById(id: string) {
-    const token = localStorage.getItem('access_token');
     const res = await fetch(`${API_URL}/projects/${id}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
+      credentials: 'include', 
     });
 
     if (!res.ok) throw new Error('Error al obtener el proyecto');

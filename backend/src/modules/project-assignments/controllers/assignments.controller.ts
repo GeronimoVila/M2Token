@@ -24,8 +24,8 @@ export class AssignmentsController {
   @Get('my-projects')
   @UseGuards(RolesGuard)
   @Roles('proveedor', 'PROVEEDOR')
-  async getMyProjects(@Req() req) {
-    const providerId = req.user.userId;
+  async getMyProjects(@Req() req: any) {
+    const providerId = req.user.id;
     return this.assignmentsService.findMyProjects(providerId);
   }
 }
