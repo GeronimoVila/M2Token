@@ -19,8 +19,8 @@ export class BlockchainService implements OnModuleInit {
   private initializeBlockchain() {
     try {
       const rpcUrl = this.configService.get<string>('RPC_URL');
-      const privateKey = this.configService.get<string>('PRIVATE_KEY_ADMIN');
-      const contractAddress = this.configService.get<string>('SMART_CONTRACT_ADDRESS');
+      const privateKey = this.configService.get<string>('PRIVATE_KEY'); 
+      const contractAddress = this.configService.get<string>('CONTRACT_ADDRESS');
 
       if (!rpcUrl || !privateKey || !contractAddress) {
         this.logger.error('Faltan variables de entorno para Blockchain');
@@ -28,9 +28,7 @@ export class BlockchainService implements OnModuleInit {
       }
 
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
-
       this.wallet = new ethers.Wallet(privateKey, this.provider);
-
       this.contract = new ethers.Contract(contractAddress, M2TokenABI.abi, this.wallet);
 
       this.logger.log(`🔗 Blockchain conectada. Wallet: ${this.wallet.address}`);
