@@ -12,7 +12,8 @@ import {
   Users, 
   Settings, 
   LogOut,
-  Layers
+  Layers,
+  UserCircle
 } from 'lucide-react';
 
 const menuItems = [
@@ -20,6 +21,7 @@ const menuItems = [
   { title: 'Proyectos', href: '/companies/projects', icon: Building2 },
   { title: 'Transactions', href: '/companies/remitos', icon: FileText },
   { title: 'Users', href: '/companies/users', icon: Users },
+  { title: 'Mi Perfil', href: '/companies/profile', icon: UserCircle },
   { title: 'Settings', href: '/companies/settings', icon: Settings },
 ];
 
@@ -27,7 +29,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-  // Estado inicial
   const [profile, setProfile] = useState({
     name: 'Cargando...',
     email: '...',
@@ -38,14 +39,13 @@ export function Sidebar() {
     const fetchProfileData = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        if (!token) return; // Si no hay token, no hacemos nada (o redirigimos)
+        if (!token) return;
 
         const headers = {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         };
 
-        // 1. Obtener datos del Usuario
         const userRes = await fetch(`${API_URL}/users/me`, { headers, credentials: 'include' });
         
         if (!userRes.ok) {
@@ -57,11 +57,9 @@ export function Sidebar() {
         const userJson = await userRes.json();
         const userData = userJson.success ? userJson.data : userJson;
 
-        // 2. Determinar si buscamos datos de empresa
         const isCompany = userData.role === 'empresa_owner' || userData.role === 'empresa_admin';
 
         if (isCompany) {
-          // Intentamos buscar la empresa
           try {
             const companyRes = await fetch(`${API_URL}/companies/my-company`, { headers, credentials: 'include' });
             
@@ -69,14 +67,13 @@ export function Sidebar() {
                 const companyJson = await companyRes.json();
                 const companyData = companyJson.success ? companyJson.data : companyJson;
 
-                // Verificamos si realmente llegó data de la empresa
                 if (companyData) {
                     setProfile({
                         name: companyData.name || userData.name, 
                         email: companyData.contactEmail || userData.email,
                         role: 'Empresa'
                     });
-                    return; // Salimos éxito
+                    return;
                 }
             }
           } catch (companyError) {
@@ -84,7 +81,6 @@ export function Sidebar() {
           }
         }
 
-        // 3. Fallback: Si no es empresa o falló la carga de empresa, mostramos datos de usuario
         setProfile({
             name: userData.name || 'Usuario',
             email: userData.email || '...',

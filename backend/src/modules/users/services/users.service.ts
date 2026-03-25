@@ -5,6 +5,7 @@ import { IUser } from '../models/user.model';
 import { BaseRepository } from '../../../common/repositories/base.repository';
 import { CompleteProfileDto } from '../dtos/complete-profile.dto';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
+import { hashPassword } from '../../../utils/password';
 
 @Injectable()
 export class UsersService extends BaseRepository<IUser> {
@@ -49,13 +50,20 @@ export class UsersService extends BaseRepository<IUser> {
   async updateProfile(userId: string, updateData: UpdateProfileDto) {
     const updateFields: any = {};
 
+    if (updateData.name) updateFields.name = updateData.name;
     if (updateData.walletAddress) updateFields.walletAddress = updateData.walletAddress;
-    
     if (updateData.cuil) updateFields.cuit = updateData.cuil;
+    if (updateData.cuit) updateFields.cuit = updateData.cuit;
     
     if (updateData.cbu) updateFields.cbu = updateData.cbu;
     if (updateData.alias) updateFields.alias = updateData.alias;
     if (updateData.razonSocial) updateFields.razonSocial = updateData.razonSocial;
+    if (updateData.category) updateFields.category = updateData.category;
+    if (updateData.phone) updateFields.phone = updateData.phone;
+    if (updateData.website) updateFields.website = updateData.website;
+    if (updateData.password) {
+      updateFields.password = await hashPassword(updateData.password);
+    }
 
     return this.userModel.findByIdAndUpdate(
       userId,

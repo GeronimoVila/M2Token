@@ -4,9 +4,11 @@ import { CompaniesController } from './controllers/companies.controller';
 import { CompaniesService } from './services/companies.service';
 import { CompanySchema } from './models/company.model';
 import { UserSchema } from '../users/models/user.model';
+import { AuthModule } from '../../modules/auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     MongooseModule.forFeature([
       { name: 'companies', schema: CompanySchema },
       { name: 'users', schema: UserSchema },

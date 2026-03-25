@@ -3,11 +3,17 @@ import axios from 'axios';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export interface UserProfileData {
+  name?: string;
+  password?: string;
   walletAddress?: string;
   cuil?: string;
+  cuit?: string;
   cbu?: string;
   alias?: string;
   razonSocial?: string;
+  category?: string;
+  phone?: string;
+  website?: string;
 }
 
 export const usersService = {
@@ -46,4 +52,23 @@ export const usersService = {
     });
     return response.data;
   },
+
+  getMyCompany: async (token: string) => {
+    const response = await axios.get(`${API_URL}/companies/my-company`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+    });
+
+    const data = response.data.success !== undefined ? response.data.data : response.data;
+    if (Array.isArray(data)) return data.length > 0 ? data[0] : {};
+    return data || {};
+  },
+
+  updateMyCompany: async (data: any, token: string) => {
+    const response = await axios.patch(`${API_URL}/companies/my-company`, data, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+    });
+    return response.data;
+  }
 };
