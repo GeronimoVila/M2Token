@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEthereumAddress, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsArray, IsMongoId, MinLength, IsEthereumAddress } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -32,10 +32,6 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  category?: string;
-
-  @IsOptional()
-  @IsString()
   phone?: string;
 
   @IsOptional()
@@ -45,4 +41,21 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsEthereumAddress({ message: 'La wallet debe ser una dirección válida de Ethereum (0x...)' })
   walletAddress?: string;
+
+  @IsOptional()
+  @IsMongoId({ message: 'La categoría debe ser un ID válido' })
+  category?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  specialties?: string[];
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

@@ -50,12 +50,27 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     if (!user) throw new UnauthorizedException('Usuario no encontrado');
     
-    if (user.role !== 'user') throw new ConflictException('El perfil ya ha sido completado anteriormente');
-
     const newRole = dto.type === 'EMPRESA' ? 'empresa_owner' : 'proveedor';
+
+    if (user.role === newRole) {
+      const tokens = await this.generateTokens(user);
+      return {
+        message: 'El perfil ya tenía el rol asignado',
+        accessToken: tokens.accessToken,
+        user: {
+          id: user._id.toString(),
+          email: user.email,
+          role: user.role,
+          companyId: user.companyId 
+        },
+      };
+    }
+
+    if (user.role !== 'user') {
+      throw new ConflictException('El perfil ya ha sido completado anteriormente');
+    }
     
     const updatedUser = await this.usersService.update(userId, { role: newRole });
-
     const tokens = await this.generateTokens(updatedUser!);
 
     return {

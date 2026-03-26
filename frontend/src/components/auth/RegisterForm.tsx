@@ -63,7 +63,13 @@ export function RegisterForm() {
     try {
       const { confirmPassword, ...dataToSend } = values;
       await registerUser(dataToSend);
-      router.push("/auth/login?registered=true");
+      
+      if (values.type === "PROVEEDOR") {
+        router.push("/auth/login?registered=true&role=proveedor");
+      } else {
+        router.push("/auth/login?registered=true");
+      }
+      
     } catch (error) {
       if (error instanceof Error) {
         setFormError(error.message);
@@ -73,7 +79,6 @@ export function RegisterForm() {
     }
   }
 
-  // 🟢 FUNCIÓN AGREGADA PARA EL BOTÓN DE GOOGLE
   const handleGoogleSignUp = () => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     window.location.href = `${API_URL}/auth/google`;
@@ -92,7 +97,6 @@ export function RegisterForm() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="grid gap-4">
             
-            {/* 🟢 BOTÓN DE GOOGLE AÑADIDO AL PRINCIPIO DEL FORMULARIO */}
             <Button 
               type="button" 
               variant="outline" 
@@ -120,7 +124,6 @@ export function RegisterForm() {
               Continuar con Google
             </Button>
 
-            {/* Separador visual */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />

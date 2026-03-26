@@ -12,20 +12,31 @@ export interface UserProfileData {
   alias?: string;
   razonSocial?: string;
   category?: string;
+  specialties?: string[];
+  address?: string;
+  description?: string;
   phone?: string;
   website?: string;
 }
 
 export const usersService = {
-  async getProviders() {
-    const token = localStorage.getItem('access_token') || '';
+  async getProviders(params?: { category?: string; location?: string; search?: string }) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : '';
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`${API_URL}/users/providers`, {
+    const queryParams = new URLSearchParams();
+    if (params?.category && params.category !== 'all') queryParams.append('category', params.category);
+    if (params?.location) queryParams.append('location', params.location);
+    if (params?.search) queryParams.append('search', params.search);
+
+    const queryString = queryParams.toString();
+    const url = `${API_URL}/users/providers${queryString ? `?${queryString}` : ''}`;
+
+    const res = await fetch(url, {
       method: 'GET',
       headers,
       credentials: 'include',
@@ -34,7 +45,7 @@ export const usersService = {
     if (!res.ok) throw new Error('Error al cargar proveedores');
     
     const result = await res.json();
-    return result.success ? result.data : result;
+    return result.success !== undefined ? result.data : result;
   },
 
   getMe: async (token: string) => {
@@ -45,9 +56,10 @@ export const usersService = {
     return response.data.data || response.data;
   },
 
-  updateProfile: async (data: UserProfileData, token: string) => {
+  updateProfile: async (data: UserProfileData, token?: string) => {
+    const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('access_token') : '');
     const response = await axios.patch(`${API_URL}/users/profile`, data, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         withCredentials: true,
     });
     return response.data;

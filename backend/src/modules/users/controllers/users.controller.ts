@@ -1,7 +1,8 @@
-import { Controller, Get, Patch, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Req, UseGuards, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'; 
 import { UsersService } from '../services/users.service';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
+import { GetProvidersQueryDto } from '../dtos/get-providers.dto';
 
 @Controller('users')
 export class UsersController {
@@ -23,7 +24,7 @@ export class UsersController {
 
   @Get('providers')
   @UseGuards(JwtAuthGuard)
-  async getProviders() {
-    return this.usersService.findAll({ role: 'proveedor', isActive: true });
+  async getProviders(@Query() query: GetProvidersQueryDto) {
+    return this.usersService.findProviders(query);
   }
 }

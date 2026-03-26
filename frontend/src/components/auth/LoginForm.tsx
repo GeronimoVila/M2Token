@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +20,7 @@ const loginSchema = z.object({
   password: z.string().min(1, "La contraseña es requerida."),
 });
 
-export function LoginForm() {
+function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formError, setFormError] = useState<string | null>(null);
@@ -28,6 +28,7 @@ export function LoginForm() {
 
   const registered = searchParams.get("registered");
   const message = searchParams.get("message");
+  const intendedRole = searchParams.get("role");
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -45,13 +46,30 @@ export function LoginForm() {
     try {
       const response = await loginUser(values);
       const token = response.accessToken || response.access_token;
+      
       if (token) {
         localStorage.setItem("access_token", token);
       } else {
         throw new Error("No se recibió el token de acceso.");
       }
+      
       router.refresh(); 
-      router.push("/"); 
+
+      if (intendedRole === "proveedor") {
+        router.push("/auth/complete-profile?step=proveedor");
+      } else {
+        const userRole = response.user?.role || response.role || "user"; 
+        
+        if (["empresa", "empresa_owner", "empresa_admin"].includes(userRole)) {
+          router.push("/companies/dashboard");
+        } else if (userRole === "proveedor") {
+          router.push("/proveedor");
+        } else if (userRole === "superadmin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
+      }
     } catch (error: any) {
       setFormError(error.message || "Credenciales inválidas.");
     }
@@ -70,6 +88,12 @@ export function LoginForm() {
               <Alert className="border-green-500 text-green-700 bg-green-50">
                 <AlertTitle>¡Registro Exitoso!</AlertTitle>
                 <AlertDescription>Ahora puedes iniciar sesión con tu cuenta.</AlertDescription>
+              </Alert>
+            )}
+            {message && (
+              <Alert className="border-blue-500 text-blue-700 bg-blue-50">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
             {formError && (
@@ -145,5 +169,13 @@ export function LoginForm() {
         </form>
       </Form>
     </Card>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

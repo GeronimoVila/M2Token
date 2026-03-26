@@ -11,6 +11,7 @@ import { CompaniesModule } from './modules/companies/companies.module';
 import { AssignmentsModule } from './modules/project-assignments/assignments.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { CanjesModule } from './modules/canjes/canjes.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { CanjesModule } from './modules/canjes/canjes.module';
     AssignmentsModule,
     BlockchainModule,
     CanjesModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

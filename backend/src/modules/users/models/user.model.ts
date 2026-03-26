@@ -14,7 +14,11 @@ export interface IUser extends Document {
   alias?: string;
   razonSocial?: string;
   
-  category?: string;
+  category?: mongoose.Types.ObjectId;
+  specialties?: string[];
+  description?: string;
+  rating?: number;
+  
   address?: string;
   phone?: string;
   website?: string;
@@ -29,7 +33,7 @@ export const UserSchema = new Schema<IUser>(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: false, select: false },
-    googleId: { type: String, default: null, unique: true, sparse: true },
+    googleId: { type: String, unique: true, sparse: true },
     
     cuit: { type: String, default: null }, 
     
@@ -46,7 +50,11 @@ export const UserSchema = new Schema<IUser>(
     cbu: { type: String, default: null },
     alias: { type: String, default: null },
     razonSocial: { type: String, default: null },
-    category: { type: String, default: null },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
+    specialties: { type: [String], default: [] },
+    description: { type: String, default: null },
+    rating: { type: Number, default: 0 },
+    
     address: { type: String, default: null },
     phone: { type: String, default: null },
     website: { type: String, default: null },
