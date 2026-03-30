@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { projectsService, Project } from '@/services/projectsService';
 import { remitosService } from '@/services/remitosService';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import RemitosList from '@/components/companies/RemitosList';
@@ -27,6 +28,9 @@ export default function ProjectDashboardPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [remitos, setRemitos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user, isLoading: isAuthLoading } = useAuthStore();
+  const canManageCanjes = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
+  const canManageProviders = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
 
   const fetchRemitos = useCallback(async () => {
     const token = localStorage.getItem('access_token') || '';
@@ -58,7 +62,7 @@ export default function ProjectDashboardPage() {
     loadData();
   }, [projectId, fetchRemitos]);
 
-  if (loading) {
+  if (loading || isAuthLoading) {
     return <div className="flex h-96 items-center justify-center"><Loader2 className="animate-spin text-brand-blue" /></div>;
   }
 
@@ -69,23 +73,26 @@ export default function ProjectDashboardPage() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || '' : '';
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.push('/companies/projects')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-brand-dark">{project.name}</h1>
-          <p className="text-gray-500">Panel de control de la obra.</p>
+    <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => router.push('/companies/projects')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-brand-dark">{project.name}</h1>
+            <p className="text-gray-500">Panel de control de la obra.</p>
+          </div>
         </div>
-        
-        <Button 
-          variant="outline" 
-          onClick={() => router.push(`/companies/projects/${projectId}/canjes`)}
-        >
-          <ArrowRightLeft className="mr-2 h-4 w-4" /> Gestionar Canjes
-        </Button>
 
+        {canManageCanjes && (
+          <Button 
+            className="bg-brand-dark hover:bg-brand-dark/90 text-white"
+            onClick={() => router.push(`/companies/projects/${projectId}/canjes`)}
+          >
+            <ArrowRightLeft className="mr-2 h-4 w-4" /> Gestionar Canjes
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -129,17 +136,20 @@ export default function ProjectDashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         
         <Card 
-            className="cursor-pointer hover:border-brand-blue transition-all group"
-            onClick={() => router.push(`/companies/projects/${projectId}/assign`)}
+            className={`${canManageProviders ? 'cursor-pointer hover:border-brand-blue transition-all group' : 'opacity-80'} `}
+            onClick={() => {
+              if (canManageProviders) router.push(`/companies/projects/${projectId}/assign`);
+            }}
         >
             <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-brand-light/30 flex items-center justify-center mb-2 group-hover:bg-brand-blue group-hover:text-white transition-colors text-brand-blue">
+                <div className={`w-12 h-12 rounded-lg bg-brand-light/30 flex items-center justify-center mb-2 text-brand-blue ${canManageProviders ? 'group-hover:bg-brand-blue group-hover:text-white transition-colors' : ''}`}>
                     <Users className="h-6 w-6" />
                 </div>
                 <CardTitle className="text-lg">Proveedores y Equipo</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-sm text-gray-500">Ver proveedores asignados, gestionar categorías y contratar nuevos.</p>
+                {!canManageProviders }
             </CardContent>
         </Card>
 
@@ -156,7 +166,7 @@ export default function ProjectDashboardPage() {
             </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:border-brand-blue transition-all group opacity-60">
+        <Card className="cursor-not-allowed transition-all group opacity-60">
             <CardHeader>
                 <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mb-2 text-gray-500">
                     <Settings className="h-6 w-6" />
@@ -182,6 +192,7 @@ export default function ProjectDashboardPage() {
           projectId={projectId} 
           token={token} 
           onUpdate={fetchRemitos}
+          userRole={user?.role}
         />
       </div>
 

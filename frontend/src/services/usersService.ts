@@ -48,7 +48,7 @@ export const usersService = {
     return result.success !== undefined ? result.data : result;
   },
 
-  getMe: async (token: string) => {
+  getMe: async (token?: string) => { 
     const response = await axios.get(`${API_URL}/users/me`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         withCredentials: true,
@@ -82,5 +82,24 @@ export const usersService = {
         withCredentials: true,
     });
     return response.data;
-  }
+  },
+
+  getTeam: async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : '';
+    const response = await axios.get(`${API_URL}/users/team`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+    });
+    return response.data.data || response.data;
+  },
+
+  inviteUser: async (data: { email: string; name: string; role: string }) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : '';
+    const response = await axios.post(`${API_URL}/users/invite`, data, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+    });
+    
+    return response.data.success !== undefined ? response.data.data : response.data;
+  },
 };

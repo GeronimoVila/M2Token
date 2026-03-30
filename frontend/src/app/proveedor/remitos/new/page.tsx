@@ -9,28 +9,16 @@ export default function NewRemitoPage() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get('projectId');
   
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("access_token"); 
-
-    console.log("🔍 Token en LocalStorage:", storedToken ? "OK" : "FALTANTE");
-
-    if (!storedToken) {
-      alert('Debes iniciar sesión para realizar esta acción');
-      router.push('/auth/login');
-      return;
-    }
-
-    setToken(storedToken);
     setIsLoading(false);
-}, [router]);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p className="text-gray-500 animate-pulse">Verificando credenciales...</p>
+        <p className="text-gray-500 animate-pulse">Cargando...</p>
       </div>
     );
   }
@@ -67,9 +55,7 @@ export default function NewRemitoPage() {
         </p>
       </div>
 
-      {token && (
-        <RemitoForm projectId={projectId} token={token} />
-      )}
+      <RemitoForm projectId={projectId} token={""} />
     </div>
   );
 }

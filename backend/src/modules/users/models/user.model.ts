@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { UserRole } from '../enums/role.enum';
 
 export interface IUser extends Document {
   name: string;
@@ -8,7 +9,7 @@ export interface IUser extends Document {
   cuit?: string; 
   
   companyId?: mongoose.Types.ObjectId; 
-  role: string; 
+  role: UserRole;
   walletAddress?: string;
   cbu?: string;
   alias?: string;
@@ -42,8 +43,8 @@ export const UserSchema = new Schema<IUser>(
     role: { 
       type: String, 
       required: true,
-      default: 'user',
-      enum: ['superadmin', 'proveedor', 'empresa_owner', 'empresa_admin', 'empresa_operator', 'empresa_auditor', 'user']
+      default: UserRole.USER,
+      enum: Object.values(UserRole)
     },
     
     walletAddress: { type: String, default: null },

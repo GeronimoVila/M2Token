@@ -4,15 +4,19 @@ import { CreateProjectDto } from '../dtos/create-project.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Types } from 'mongoose';
 import { AssignmentsService } from '../../project-assignments/services/assignments.service';
+import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
+import { UserRole } from 'src/modules/users/enums/role.enum';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 
 @Controller('projects')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly assignmentsService: AssignmentsService
   ) {}
 
+  @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN)
   @Post()
   async create(@Body() createProjectDto: CreateProjectDto, @Req() req: any) {
     const companyId = req.user.companyId;

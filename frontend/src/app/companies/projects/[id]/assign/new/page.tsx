@@ -45,11 +45,16 @@ export default function SearchProvidersPage() {
     }
   }
 
-  const filteredProviders = providers.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.category && p.category.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredProviders = providers.filter(p => {
+    const searchLower = searchTerm.toLowerCase();
+    const catName = typeof p.category === 'object' && p.category !== null ? p.category.name : p.category;
+    
+    return (
+      (p.name && p.name.toLowerCase().includes(searchLower)) || 
+      (p.email && p.email.toLowerCase().includes(searchLower)) ||
+      (catName && catName.toLowerCase().includes(searchLower))
+    );
+  });
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -94,7 +99,7 @@ export default function SearchProvidersPage() {
                             <span>{provider.email}</span>
                             {provider.category && (
                                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-100 uppercase">
-                                    {provider.category}
+                                    {typeof provider.category === 'object' ? provider.category.label || provider.category.name : provider.category}
                                 </span>
                             )}
                         </div>

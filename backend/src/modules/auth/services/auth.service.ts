@@ -7,6 +7,7 @@ import { LoginDto } from '../dtos/login.dto';
 import { CompleteSocialRegisterDto } from '../dtos/complete-social-register.dto';
 import { hashPassword, comparePassword } from 'src/utils/password';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from 'src/utils/token';
+import { UserRole } from 'src/modules/users/enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,7 @@ export class AuthService {
         name: `${googleUser.firstName} ${googleUser.lastName}`,
         email: googleUser.email,
         googleId: googleUser.googleId,
-        role: 'user', 
+        role: UserRole.USER,
         isActive: true,
       });
     } else if (!user.googleId) {
@@ -90,7 +91,7 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) throw new ConflictException('El email ya está registrado');
 
-    const initialRole = type === 'EMPRESA' ? 'empresa_owner' : 'proveedor';
+    const initialRole = type === 'EMPRESA' ? UserRole.COMPANY_OWNER : UserRole.PROVEEDOR;
     const hashedPassword = await hashPassword(password); 
 
     const user = await this.usersService.create({

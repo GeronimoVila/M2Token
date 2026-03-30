@@ -7,15 +7,16 @@ import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { RemitosService } from '../services/remitos.service';
 import { CreateRemitoDto } from '../dtos/create-remito.dto';
 import { ValidateRemitoDto } from '../dtos/validate-remito.dto';
+import { UserRole } from 'src/modules/users/enums/role.enum';
 
 @Controller('remitos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class RemitosController {
   constructor(private readonly remitosService: RemitosService) {}
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles('proveedor', 'PROVEEDOR')
+  @Roles(UserRole.PROVEEDOR)
   @UseInterceptors(FileInterceptor('file'))
   async createRemito(
     @Body() createRemitoDto: CreateRemitoDto, 
@@ -32,7 +33,7 @@ export class RemitosController {
 
   @Get('my-remitos')
   @UseGuards(RolesGuard)
-  @Roles('proveedor', 'PROVEEDOR')
+  @Roles(UserRole.PROVEEDOR)
   async getMyRemitos(@Req() req) {
     const proveedorId = req.user.id; 
     return this.remitosService.findMyRemitos(proveedorId);
@@ -40,14 +41,14 @@ export class RemitosController {
 
   @Get('project/:projectId')
   @UseGuards(RolesGuard)
-  @Roles('admin', 'empresa', 'EMPRESA', 'empresa_owner') 
+  @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN, UserRole.COMPANY_APPROVER, UserRole.COMPANY_VIEWER, UserRole.SUPERADMIN)
   async getRemitosByProject(@Param('projectId', ParseMongoIdPipe) projectId: string) {
     return this.remitosService.findByProjectId(projectId);
   }
 
   @Patch(':id/validate')
   @UseGuards(RolesGuard)
-  @Roles('admin', 'empresa', 'EMPRESA', 'empresa_owner')
+  @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN, UserRole.COMPANY_APPROVER, UserRole.SUPERADMIN)
   async validateRemito(
     @Param('id', ParseMongoIdPipe) id: string,
     @Body() validateDto: ValidateRemitoDto,

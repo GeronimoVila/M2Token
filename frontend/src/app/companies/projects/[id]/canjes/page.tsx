@@ -4,57 +4,76 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { canjesService } from "@/services/canjesService";
 import { projectsService } from "@/services/projectsService";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, RefreshCw, CheckCircle, XCircle, Wallet } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw, CheckCircle, Wallet } from "lucide-react";
 
 export default function CompanyProjectCanjesPage() {
   const router = useRouter();
   const params = useParams();
   const projectId = params.id as string;
+  const { user, isLoading: isAuthLoading } = useAuthStore();
 
   const [project, setProject] = useState<any>(null);
   const [canjes, setCanjes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Estado para saber qué canje se está procesando (para mostrar spinner en el botón)
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      if (user.role === 'empresa_approver' || user.role === 'empresa_viewer') {
+        router.push('/companies/dashboard');
+      }
+    }
+  }, [user, isAuthLoading, router]);
+
+  useEffect(() => {
+    if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const projectData = await projectsService.getById(projectId);
+        setProject(projectData);
+
+        const data = await canjesService.getCanjesByProject(projectId);
+        setCanjes(data);
+      } catch (error) {
+        console.error("Error cargando canjes", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (projectId) fetchData();
+  }, [projectId, isAuthLoading, user]);
+
+  const handleRefresh = async () => {
     setLoading(true);
     try {
-      const projectData = await projectsService.getById(projectId);
-      setProject(projectData);
-
-      // Usamos el nuevo servicio que filtra por proyecto
       const data = await canjesService.getCanjesByProject(projectId);
       setCanjes(data);
     } catch (error) {
-      console.error("Error cargando canjes", error);
+      console.error("Error recargando canjes", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (projectId) fetchData();
-  }, [projectId]);
-
-  // FUNCION PARA QUEMAR TOKENS
   const handleApprove = async (canje: any) => {
     if (!confirm(`¿Confirmas que has pagado al proveedor y deseas QUEMAR ${canje.amountTokens} tokens?`)) return;
 
     setProcessingId(canje._id);
     try {
-      // 1. Llamada al Backend -> Blockchain
       const result = await canjesService.confirmPaymentAndBurn(canje._id);
       
       console.log("Burn exitoso:", result);
       alert("¡Éxito! Tokens quemados correctamente. Hash: " + (result.txHash || 'Ok'));
       
-      // 2. Recargar lista
-      fetchData();
+      handleRefresh();
     } catch (error: any) {
       console.error("Error en quema:", error);
       alert("Error: " + (error.response?.data?.message || error.message));
@@ -74,8 +93,17 @@ export default function CompanyProjectCanjesPage() {
     }
   };
 
+  if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+        <span className="ml-2 text-brand-dark font-medium">Verificando accesos...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="container py-8 space-y-6">
+    <div className="container py-8 space-y-6 animate-in fade-in duration-500">
       
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -84,7 +112,7 @@ export default function CompanyProjectCanjesPage() {
            </Button>
            <div>
              <h1 className="text-2xl font-bold text-slate-900">
-               Solicitudes de Retiro: {project?.name}
+               Solicitudes de Retiro: {project?.name || 'Cargando...'}
              </h1>
              <p className="text-sm text-gray-500">Autoriza pagos y quema tokens del proveedor.</p>
            </div>
@@ -94,13 +122,13 @@ export default function CompanyProjectCanjesPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Cola de Solicitudes</CardTitle>
-          <Button variant="ghost" size="sm" onClick={fetchData}>
-            <RefreshCw className="w-4 h-4"/>
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}/>
           </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="animate-spin" /></div>
+            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-brand-blue" /></div>
           ) : (
             <div className="relative w-full overflow-auto">
               <table className="w-full text-sm text-left">

@@ -1,12 +1,12 @@
 'use client';
 
-// ... (Mismos imports que tenías antes: useState, useRouter, useForm, zodResolver, z, projectsService...)
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { projectsService } from '@/services/projectsService';
+import { useAuthStore } from '@/store/useAuthStore';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
 
-// 1. Esquema (Igual que antes)
 const formSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
@@ -31,6 +30,16 @@ export default function NewProjectPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { user, isLoading: isAuthLoading } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      if (user.role === 'empresa_approver' || user.role === 'empresa_viewer') {
+        router.push('/companies/dashboard');
+      }
+    }
+  }, [user, isAuthLoading, router]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any, 
@@ -62,9 +71,17 @@ export default function NewProjectPage() {
     }
   }
 
+  if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+        <span className="ml-2 text-brand-dark font-medium">Verificando accesos...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Encabezado Consistente */}
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center gap-4">
         <Link href="/companies/projects">
           <Button variant="outline" size="icon" className="h-9 w-9">
@@ -96,7 +113,6 @@ export default function NewProjectPage() {
                   </div>
                 )}
 
-                {/* --- Mismos campos que antes, pero con el diseño limpio --- */}
                 <FormField
                   control={form.control}
                   name="name"

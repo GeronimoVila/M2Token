@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 import { loginUser } from "@/services/authService";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ function LoginFormContent() {
   const searchParams = useSearchParams();
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const fetchUser = useAuthStore((state) => state.fetchUser);
 
   const registered = searchParams.get("registered");
   const message = searchParams.get("message");
@@ -53,6 +55,8 @@ function LoginFormContent() {
         throw new Error("No se recibió el token de acceso.");
       }
       
+      await fetchUser();
+
       router.refresh(); 
 
       if (intendedRole === "proveedor") {

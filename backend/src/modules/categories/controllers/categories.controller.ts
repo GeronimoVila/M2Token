@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { ParseMongoIdPipe } from '../../../utils/pipes/parse-mongo-id.pipe';
+import { UserRole } from 'src/modules/users/enums/role.enum';
 
 @Controller('categories')
 export class CategoriesController {
@@ -17,21 +18,21 @@ export class CategoriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPERADMIN')
+  @Roles(UserRole.SUPERADMIN)
   @Get('admin')
   findAllForAdmin() {
     return this.categoriesService.findAllForAdmin();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPERADMIN')
+  @Roles(UserRole.SUPERADMIN)
   @Post()
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPERADMIN')
+  @Roles(UserRole.SUPERADMIN)
   @Patch(':id')
   update(
     @Param('id', ParseMongoIdPipe) id: string, 
@@ -41,7 +42,7 @@ export class CategoriesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('SUPERADMIN')
+  @Roles(UserRole.SUPERADMIN)
   @Patch(':id/toggle')
   toggleActive(
     @Param('id', ParseMongoIdPipe) id: string, 

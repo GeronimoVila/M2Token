@@ -11,8 +11,15 @@ export interface CreateRemitoPayload {
   file: File;
 }
 
+const getHeaders = (token?: string, isMultipart = false) => {
+  const headers: any = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (isMultipart) headers['Content-Type'] = 'multipart/form-data';
+  return headers;
+};
+
 export const remitosService = {
-  upload: async (payload: CreateRemitoPayload, token: string) => {
+  upload: async (payload: CreateRemitoPayload, token?: string) => {
     const formData = new FormData();
     
     formData.append('projectId', payload.projectId);
@@ -24,10 +31,7 @@ export const remitosService = {
 
     try {
       const response = await axios.post(`${API_URL}/remitos`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: getHeaders(token, true),
         withCredentials: true,
       });
       return response.data;
@@ -37,21 +41,14 @@ export const remitosService = {
     }
   },
 
-  getByProject: async (projectId: string, token: string) => {
-    console.group("🚀 Debug getByProject");
-    console.log("URL:", `${API_URL}/remitos/project/${projectId}`);
-    console.log("ProjectId:", projectId);
-    console.log("Token Presente:", !!token);
-    console.groupEnd();
-
+  getByProject: async (projectId: string, token?: string) => {
     if (!projectId || projectId === 'undefined') {
-        console.error("❌ ERROR CRÍTICO: ProjectId es inválido");
         throw new Error("ID de proyecto inválido");
     }
 
     try {
       const response = await axios.get(`${API_URL}/remitos/project/${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
         withCredentials: true,
       });
 
@@ -61,18 +58,17 @@ export const remitosService = {
       return response.data; 
       
     } catch (error: any) {
-      console.error("Error Axios:", error.response?.status, error.response?.data);
       throw error.response?.data || { message: 'Error al obtener remitos' };
     }
   },
 
-  validate: async (id: string, estado: 'validado' | 'rechazado', token: string) => {
+  validate: async (id: string, estado: 'validado' | 'rechazado', token?: string) => {
     try {
       const response = await axios.patch(
         `${API_URL}/remitos/${id}/validate`,
         { estado }, 
         { 
-          headers: { Authorization: `Bearer ${token}` },
+          headers: getHeaders(token),
           withCredentials: true,
         }
       );
@@ -82,10 +78,10 @@ export const remitosService = {
     }
   },
 
-  getMyRemitos: async (token: string) => {
+  getMyRemitos: async (token?: string) => {
     try {
       const response = await axios.get(`${API_URL}/remitos/my-remitos`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
         withCredentials: true,
       });
 

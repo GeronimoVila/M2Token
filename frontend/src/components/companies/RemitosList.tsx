@@ -26,10 +26,13 @@ interface RemitosListProps {
   projectId: string;
   token: string;
   onUpdate: () => void;
+  userRole?: string;
 }
 
-export default function RemitosList({ remitos, projectId, token, onUpdate }: RemitosListProps) {
+export default function RemitosList({ remitos, projectId, token, onUpdate, userRole }: RemitosListProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const canValidate = userRole === 'empresa_owner' || userRole === 'empresa_admin' || userRole === 'empresa_approver';
 
   const handleValidation = async (id: string, estado: 'validado' | 'rechazado') => {
     if (!confirm(`¿Estás seguro de marcar este remito como ${estado}?`)) return;
@@ -66,13 +69,15 @@ export default function RemitosList({ remitos, projectId, token, onUpdate }: Rem
                 <th className="px-4 py-3">Monto</th>
                 <th className="px-4 py-3">Evidencia</th>
                 <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Acciones</th>
+                {canValidate && (
+                  <th className="px-4 py-3 text-right">Acciones</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {remitos.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                  <td colSpan={canValidate ? 7 : 6} className="text-center py-8 text-gray-500">
                     No hay remitos cargados aún.
                   </td>
                 </tr>
@@ -116,30 +121,33 @@ export default function RemitosList({ remitos, projectId, token, onUpdate }: Rem
                       {remito.estado}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    {remito.estado === 'pendiente' && (
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          disabled={!!processingId}
-                          onClick={() => handleValidation(remito._id, 'validado')}
-                        >
-                          <CheckCircle className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          disabled={!!processingId}
-                          onClick={() => handleValidation(remito._id, 'rechazado')}
-                        >
-                          <XCircle className="h-5 w-5" />
-                        </Button>
-                      </div>
-                    )}
-                  </td>
+                  
+                  {canValidate && (
+                    <td className="px-4 py-3 text-right">
+                      {remito.estado === 'pendiente' && (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            disabled={!!processingId}
+                            onClick={() => handleValidation(remito._id, 'validado')}
+                          >
+                            <CheckCircle className="h-5 w-5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            disabled={!!processingId}
+                            onClick={() => handleValidation(remito._id, 'rechazado')}
+                          >
+                            <XCircle className="h-5 w-5" />
+                          </Button>
+                        </div>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

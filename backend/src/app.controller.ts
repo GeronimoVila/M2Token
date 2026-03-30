@@ -3,6 +3,7 @@ import { AppService } from './app.service';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
 import { Roles } from './modules/auth/decorators/roles.decorator';
+import { UserRole } from './modules/users/enums/role.enum';
 
 @Controller()
 export class AppController {
@@ -15,7 +16,7 @@ export class AppController {
 
   @Get('admin-test')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.SUPERADMIN)
   adminTest() {
     return { message: 'Bienvenido, Administrador' };
   }

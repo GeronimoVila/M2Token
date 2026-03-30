@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { projectsService, Project } from '@/services/projectsService';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, MapPin, DollarSign, Loader2, FolderKanban, UserPlus } from 'lucide-react';
@@ -13,6 +14,10 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const { user, isLoading: isAuthLoading } = useAuthStore();
+  
+  const canCreateProject = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
 
   useEffect(() => {
     loadProjects();
@@ -50,7 +55,7 @@ export default function ProjectsPage() {
     }
   }
 
-  if (loading) {
+  if (loading || isAuthLoading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
@@ -65,11 +70,14 @@ export default function ProjectsPage() {
           <h2 className="text-3xl font-bold tracking-tight text-brand-dark">Proyectos</h2>
           <p className="text-gray-500">Gestiona y monitorea tus obras activas.</p>
         </div>
-        <Link href="/companies/projects/new">
-          <Button className="bg-brand-salmon hover:bg-brand-salmon/90 text-white shadow-md shadow-brand-salmon/20">
-            <Plus className="mr-2 h-4 w-4" /> Nuevo proyecto
-          </Button>
-        </Link>
+        
+        {canCreateProject && (
+          <Link href="/companies/projects/new">
+            <Button className="bg-brand-salmon hover:bg-brand-salmon/90 text-white shadow-md shadow-brand-salmon/20">
+              <Plus className="mr-2 h-4 w-4" /> Nuevo proyecto
+            </Button>
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -84,11 +92,14 @@ export default function ProjectsPage() {
             <FolderKanban className="h-12 w-12 mb-4 text-brand-light" />
             <h3 className="text-lg font-medium text-brand-dark">Aún no tienes proyectos</h3>
             <p className="mb-6">Comienza creando tu primer proyecto.</p>
-            <Link href="/companies/projects/new">
-              <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue/10">
-                Crear primer proyecto.
-              </Button>
-            </Link>
+            
+            {canCreateProject && (
+              <Link href="/companies/projects/new">
+                <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue/10">
+                  Crear primer proyecto.
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           projects.map((project) => (
@@ -133,18 +144,6 @@ export default function ProjectsPage() {
                     onClick={() => router.push(`/companies/projects/${project._id}`)}
                 >
                   Ver detalles
-                </Button>
-
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 mt-0 border-brand-blue/20 text-brand-blue hover:bg-brand-blue hover:text-white transition-colors"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/companies/projects/${project._id}/assign`);
-                    }}
-                >
-                    <UserPlus className="mr-2 h-4 w-4" /> Asignar
                 </Button>
               </CardFooter>
             </Card>

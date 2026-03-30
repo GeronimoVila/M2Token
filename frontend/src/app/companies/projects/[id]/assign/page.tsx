@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usersService } from "@/services/usersService";
 import { getActiveCategories } from "@/services/categoriesService";
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
@@ -30,8 +31,19 @@ export default function AssignedProvidersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [locationTerm, setLocationTerm] = useState("");
+  const { user, isLoading: isAuthLoading } = useAuthStore();
 
   useEffect(() => {
+    if (!isAuthLoading && user) {
+      if (user.role === 'empresa_approver' || user.role === 'empresa_viewer') {
+        router.push('/companies/dashboard');
+      }
+    }
+  }, [user, isAuthLoading, router]);
+
+  useEffect(() => {
+    if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) return;
+
     async function fetchAssignments() {
       try {
         const token = localStorage.getItem('access_token') || '';
@@ -57,15 +69,17 @@ export default function AssignedProvidersPage() {
       }
     }
     fetchAssignments();
-  }, [projectId]);
+  }, [projectId, isAuthLoading, user]);
 
   useEffect(() => {
+    if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) return;
+
     async function fetchCategories() {
       const data = await getActiveCategories();
       if (Array.isArray(data)) setCategories(data);
     }
     fetchCategories();
-  }, []);
+  }, [isAuthLoading, user]);
 
   const fetchDirectoryProviders = useCallback(async () => {
     if (viewMode !== 'directory') return;
@@ -100,8 +114,17 @@ export default function AssignedProvidersPage() {
 
   const assignedCategoriesKeys = Object.keys(groupedProviders);
 
+  if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+        <span className="ml-2 text-brand-dark font-medium">Verificando accesos...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">

@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IUser } from '../models/user.model';
@@ -31,7 +31,7 @@ export class UsersService extends BaseRepository<IUser> {
     return this.findById(id);
   }
 
-async findProviders(query: any): Promise<IUser[]> {
+  async findProviders(query: any): Promise<IUser[]> {
     try {
       const { category, location, search } = query;
       
@@ -64,6 +64,56 @@ async findProviders(query: any): Promise<IUser[]> {
       console.error("ERROR findProviders:", error);
       throw error;
     }
+  }
+
+  async inviteCompanyUser(inviterId: string, dto: any) {
+    const inviter = await this.findById(inviterId);
+    
+    if (!inviter || !inviter.companyId) {
+      throw new BadRequestException('No perteneces a ninguna empresa para realizar invitaciones.');
+    }
+
+    const existingUser = await this.findByEmail(dto.email);
+
+    if (existingUser) {
+      throw new ConflictException('Este correo ya está registrado en el sistema y asociado a otra cuenta o empresa.');
+    }
+
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await hashPassword(tempPassword);
+
+    const newUser = await this.userModel.create({
+      name: dto.name,
+      email: dto.email,
+      password: hashedPassword,
+      role: dto.role,
+      companyId: inviter.companyId,
+      isActive: true,
+    });
+
+    return {
+      message: 'Usuario invitado y creado exitosamente.',
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      },
+      tempPassword,
+    };
+  }
+
+  async getCompanyTeam(userId: string) {
+    const user = await this.findById(userId);
+    
+    if (!user || !user.companyId) {
+      throw new BadRequestException('No perteneces a ninguna empresa.');
+    }
+
+    return this.userModel.find({ companyId: user.companyId })
+      .select('name email role isActive createdAt')
+      .sort({ createdAt: 1 })
+      .exec();
   }
 
   async completeProviderProfile(userId: string, data: CompleteProfileDto): Promise<IUser | null> {

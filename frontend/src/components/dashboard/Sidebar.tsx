@@ -1,16 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
   Building2, 
-  FileText, 
   Users, 
-  Settings, 
   LogOut,
   Layers,
   UserCircle
@@ -19,91 +17,34 @@ import {
 const menuItems = [
   { title: 'Inicio', href: '/companies/dashboard', icon: LayoutDashboard },
   { title: 'Proyectos', href: '/companies/projects', icon: Building2 },
-  { title: 'Transactions', href: '/companies/remitos', icon: FileText },
-  { title: 'Users', href: '/companies/users', icon: Users },
+  { title: 'Equipo', href: '/companies/settings/team', icon: Users },
   { title: 'Mi Perfil', href: '/companies/profile', icon: UserCircle },
-  { title: 'Settings', href: '/companies/settings', icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-  const [profile, setProfile] = useState({
-    name: 'Cargando...',
-    email: '...',
-    role: 'Usuario'
+  const { user, logout } = useAuthStore();
+
+  const visibleMenuItems = menuItems.filter((item) => {
+    if (item.href === '/companies/settings/team') {
+      return user?.role === 'empresa_owner' || user?.role === 'empresa_admin' || user?.role === 'empresa_viewer';
+    }
+    return true;
   });
-
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
-
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        };
-
-        const userRes = await fetch(`${API_URL}/users/me`, { headers, credentials: 'include' });
-        
-        if (!userRes.ok) {
-            console.error('Error al obtener usuario');
-            setProfile({ name: 'Error', email: '...', role: 'Guest' });
-            return;
-        }
-        
-        const userJson = await userRes.json();
-        const userData = userJson.success ? userJson.data : userJson;
-
-        const isCompany = userData.role === 'empresa_owner' || userData.role === 'empresa_admin';
-
-        if (isCompany) {
-          try {
-            const companyRes = await fetch(`${API_URL}/companies/my-company`, { headers, credentials: 'include' });
-            
-            if (companyRes.ok) {
-                const companyJson = await companyRes.json();
-                const companyData = companyJson.success ? companyJson.data : companyJson;
-
-                if (companyData) {
-                    setProfile({
-                        name: companyData.name || userData.name, 
-                        email: companyData.contactEmail || userData.email,
-                        role: 'Empresa'
-                    });
-                    return;
-                }
-            }
-          } catch (companyError) {
-            console.warn("No se pudo cargar la empresa, usando datos de usuario", companyError);
-          }
-        }
-
-        setProfile({
-            name: userData.name || 'Usuario',
-            email: userData.email || '...',
-            role: userData.role === 'proveedor' ? 'Proveedor' : 'Usuario'
-        });
-
-      } catch (error) {
-        console.error("Error crítico en sidebar:", error);
-        setProfile({ name: 'Usuario', email: 'Error de conexión', role: 'Offline' });
-      }
-    };
-
-    fetchProfileData();
-  }, [API_URL]);
 
   const handleLogout = async () => {
     try {
       await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch (error) {
+      console.warn("Error de conexión al cerrar sesión en el servidor", error);
+    } finally {
       localStorage.removeItem('access_token');
       localStorage.removeItem('user');
-      window.location.href = '/auth/login';
-    } catch (error) {
-      localStorage.clear();
+      
+      logout(); 
+      
       window.location.href = '/auth/login';
     }
   };
@@ -111,7 +52,6 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 flex-col bg-brand-dark text-white md:flex h-screen fixed left-0 top-0 z-30 shadow-xl">
       
-      {/* 1. Logo Area */}
       <div className="flex items-center gap-3 px-6 h-20 border-b border-brand-light/10">
         <div className="h-8 w-8 rounded bg-brand-salmon flex items-center justify-center">
           <Layers className="h-5 w-5 text-white" />
@@ -122,9 +62,8 @@ export function Sidebar() {
         </div>
       </div>
       
-      {/* 2. Navegación */}
       <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
-          {menuItems.map((item, index) => {
+          {visibleMenuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             
@@ -146,18 +85,17 @@ export function Sidebar() {
           })}
       </nav>
 
-      {/* 3. Footer con Perfil y Botón Logout */}
       <div className="p-6 border-t border-brand-light/10 bg-brand-dark">
         <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-full bg-brand-light/20 flex items-center justify-center border border-brand-light/30">
+            <div className="h-10 w-10 rounded-full bg-brand-light/20 flex items-center justify-center border border-brand-light/30 shrink-0">
                 <Users className="h-5 w-5 text-brand-light" />
             </div>
             <div className="overflow-hidden">
-                <p className="text-sm font-semibold text-white truncate w-[140px]" title={profile.name}>
-                  {profile.name}
+                <p className="text-sm font-semibold text-white truncate w-[140px]" title={user?.name || 'Usuario'}>
+                  {user?.name || 'Cargando...'}
                 </p>
-                <p className="text-xs text-brand-light/60 truncate w-[140px]" title={profile.email}>
-                  {profile.email}
+                <p className="text-xs text-brand-light/60 truncate w-[140px]" title={user?.email || '...'}>
+                  {user?.email || '...'}
                 </p>
             </div>
         </div>
