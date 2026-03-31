@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRole extends Document {
-  name: string; // nombre del rol (admin, empresa, proveedor, auditor, etc.)
+  name: string;
   description?: string;
-  permissions?: Record<string, any>; // estructura flexible para permisos dinámicos
+  permissions?: Record<string, any>;
   createdAt: Date;
 }
 

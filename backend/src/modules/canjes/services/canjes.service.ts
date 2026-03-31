@@ -13,7 +13,7 @@ export class CanjesService {
     @InjectModel('canjes') private readonly canjeModel: Model<ICanje>,
     private readonly blockchainService: BlockchainService,
     private readonly usersService: UsersService,
-    private readonly projectsService: ProjectsService, // 👈 Inyectado
+    private readonly projectsService: ProjectsService,
   ) {}
 
   async solicitarCanje(userId: string, dto: CreateCanjeDto) {

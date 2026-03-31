@@ -12,6 +12,8 @@ import { AssignmentsModule } from './modules/project-assignments/assignments.mod
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { CanjesModule } from './modules/canjes/canjes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { TendersModule } from './modules/tenders/tenders.module';
+import { BidsModule } from './modules/bids/bids.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
     BlockchainModule,
     CanjesModule,
     CategoriesModule,
+    TendersModule,
+    BidsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

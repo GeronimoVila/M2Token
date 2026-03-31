@@ -9,12 +9,17 @@ import {
   HardHat,
   UserCircle,
   LogOut,
-  Layers
+  Layers,
+  FileText, 
+  CheckSquare, 
+  Settings, Briefcase, 
+  Megaphone
 } from 'lucide-react';
 
 const menuItems = [
   { title: 'Inicio', href: '/proveedor', icon: LayoutDashboard },
   { title: 'Mis Proyectos', href: '/proveedor/projects', icon: HardHat },
+  { title: 'Licitaciones', href: '/proveedor/tenders', icon: Megaphone },
   { title: 'Mi Perfil', href: '/proveedor/profile', icon: UserCircle },
 ];
 

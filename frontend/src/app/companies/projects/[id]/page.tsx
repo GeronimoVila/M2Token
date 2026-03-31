@@ -17,7 +17,8 @@ import {
   Users, 
   FileText, 
   Settings,
-  Loader2
+  Loader2,
+  Megaphone
 } from 'lucide-react';
 
 export default function ProjectDashboardPage() {
@@ -31,6 +32,7 @@ export default function ProjectDashboardPage() {
   const { user, isLoading: isAuthLoading } = useAuthStore();
   const canManageCanjes = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
   const canManageProviders = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
+  const canManageTenders = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
 
   const fetchRemitos = useCallback(async () => {
     const token = localStorage.getItem('access_token') || '';
@@ -133,8 +135,28 @@ export default function ProjectDashboardPage() {
       </div>
 
       <h3 className="text-xl font-semibold text-brand-dark mt-8">Gestión</h3>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         
+        <Card 
+            className={`${canManageTenders ? 'cursor-pointer hover:border-brand-salmon transition-all group' : 'opacity-80'} `}
+            onClick={() => {
+              if (canManageTenders) router.push(`/companies/projects/${projectId}/tenders`);
+            }}
+        >
+            <CardHeader>
+                <div className={`w-12 h-12 rounded-lg bg-brand-light/30 flex items-center justify-center mb-2 text-brand-salmon ${canManageTenders ? 'group-hover:bg-brand-salmon group-hover:text-white transition-colors' : ''}`}>
+                    <Megaphone className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg">Licitaciones</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-gray-500">Publica necesidades y recibe propuestas de proveedores.</p>
+                {!canManageTenders && (
+                  <p className="text-xs text-amber-600 mt-2 font-medium">⚠️ Solo administradores.</p>
+                )}
+            </CardContent>
+        </Card>
+
         <Card 
             className={`${canManageProviders ? 'cursor-pointer hover:border-brand-blue transition-all group' : 'opacity-80'} `}
             onClick={() => {
@@ -145,11 +167,13 @@ export default function ProjectDashboardPage() {
                 <div className={`w-12 h-12 rounded-lg bg-brand-light/30 flex items-center justify-center mb-2 text-brand-blue ${canManageProviders ? 'group-hover:bg-brand-blue group-hover:text-white transition-colors' : ''}`}>
                     <Users className="h-6 w-6" />
                 </div>
-                <CardTitle className="text-lg">Proveedores y Equipo</CardTitle>
+                <CardTitle className="text-lg">Equipo Asignado</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-sm text-gray-500">Ver proveedores asignados, gestionar categorías y contratar nuevos.</p>
-                {!canManageProviders }
+                <p className="text-sm text-gray-500">Ver proveedores trabajando en la obra o añadir directos.</p>
+                {!canManageProviders && (
+                  <p className="text-xs text-amber-600 mt-2 font-medium">⚠️ Solo administradores.</p>
+                )}
             </CardContent>
         </Card>
 
@@ -162,7 +186,7 @@ export default function ProjectDashboardPage() {
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold mb-1">{remitos.length}</div>
-                <p className="text-sm text-gray-500">Documentos listos para auditar en la tabla inferior.</p>
+                <p className="text-sm text-gray-500">Documentos listos para auditar abajo.</p>
             </CardContent>
         </Card>
 
@@ -171,10 +195,10 @@ export default function ProjectDashboardPage() {
                 <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mb-2 text-gray-500">
                     <Settings className="h-6 w-6" />
                 </div>
-                <CardTitle className="text-lg">Configuración de Obra</CardTitle>
+                <CardTitle className="text-lg">Configuración</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-sm text-gray-500">Editar presupuesto, finalizar obra o pausar proyecto.</p>
+                <p className="text-sm text-gray-500">Editar proyecto o finalizar obra.</p>
             </CardContent>
         </Card>
       </div>
