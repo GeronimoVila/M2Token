@@ -43,7 +43,13 @@ export function CreateCanjeModal({ projectId, onSuccess }: Props) {
       setAmount("");
       onSuccess();
     } catch (err: any) {
-      setError(err.message || "Error al crear la solicitud");
+      const backendError = err.response?.data?.error || err.response?.data?.message;
+      
+      if (Array.isArray(backendError)) {
+        setError(backendError.join(', '));
+      } else {
+        setError(backendError || err.message || "Error al crear la solicitud");
+      }
     } finally {
       setLoading(false);
     }

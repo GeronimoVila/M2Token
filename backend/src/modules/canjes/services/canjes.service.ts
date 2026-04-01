@@ -27,7 +27,7 @@ export class CanjesService {
     if (!project) throw new NotFoundException('Proyecto no encontrado');
     
     if (dto.tipo === TipoCanje.ACTIVO && project.status !== 'finished') {
-      throw new BadRequestException('No se puede canjear por Activo hasta que la obra esté finalizada (Estado: finished)');
+      throw new BadRequestException('No se puede canjear por Activo hasta que la obra esté finalizada.');
     }
 
     const numericProjectId = parseInt(dto.projectId.toString().slice(-6), 16);

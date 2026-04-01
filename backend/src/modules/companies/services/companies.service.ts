@@ -43,7 +43,11 @@ export class CompaniesService extends BaseRepository<ICompany> {
     return newCompany;
   }
 
-  async findByOwner(userId: string): Promise<ICompany | null> {
-    return this.findOne({ ownerId: new Types.ObjectId(userId) });
+  async findByUserId(userId: string): Promise<ICompany | null> {
+    const user = await this.userModel.findById(userId);
+    if (!user || !user.companyId) {
+      return null;
+    }
+    return this.findOne({ _id: user.companyId });
   }
 }

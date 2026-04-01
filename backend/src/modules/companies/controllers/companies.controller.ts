@@ -18,19 +18,17 @@ export class CompaniesController {
   @Get('my-company')
   async getMyCompany(@Req() req: any) {
     const userId = req.user.id;
-    return this.companiesService.findByOwner(userId);
+    return this.companiesService.findByUserId(userId);
   }
 
   @Patch('my-company')
   async updateMyCompany(@Req() req: any, @Body() updateData: any) {
     const userId = req.user.id;
-    
-    const company = await this.companiesService.findByOwner(userId);
-    
+    const company = await this.companiesService.findByUserId(userId);
     if (!company) {
       throw new NotFoundException('No se encontró una empresa asignada a este usuario');
     }
 
-    return this.companiesService.update(company._id, updateData);
+    return this.companiesService.update(company._id as string, updateData);
   }
 }
