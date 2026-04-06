@@ -14,6 +14,7 @@ import { CanjesModule } from './modules/canjes/canjes.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { TendersModule } from './modules/tenders/tenders.module';
 import { BidsModule } from './modules/bids/bids.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { BidsModule } from './modules/bids/bids.module';
     CategoriesModule,
     TendersModule,
     BidsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

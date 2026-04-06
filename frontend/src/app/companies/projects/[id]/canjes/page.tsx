@@ -8,7 +8,19 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, RefreshCw, CheckCircle, Wallet } from "lucide-react";
+import { 
+  Loader2, 
+  ArrowLeft, 
+  RefreshCw, 
+  CheckCircle, 
+  Wallet, 
+  Clock, 
+  CheckCircle2, 
+  Flame, 
+  Inbox,
+  ArrowRightLeft
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function CompanyProjectCanjesPage() {
   const router = useRouter();
@@ -70,7 +82,6 @@ export default function CompanyProjectCanjesPage() {
     try {
       const result = await canjesService.confirmPaymentAndBurn(canje._id);
       
-      console.log("Burn exitoso:", result);
       alert("¡Éxito! Tokens quemados correctamente. Hash: " + (result.txHash || 'Ok'));
       
       handleRefresh();
@@ -85,105 +96,163 @@ export default function CompanyProjectCanjesPage() {
   const getStatusBadge = (estado: string) => {
     switch (estado) {
       case 'PENDIENTE':
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Pendiente de Pago</Badge>;
+        return (
+          <span className="bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit shadow-sm">
+            <Clock className="w-3.5 h-3.5"/> Pendiente
+          </span>
+        );
       case 'COMPLETADO':
-        return <Badge className="bg-green-600">Completado</Badge>;
+        return (
+          <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit shadow-sm">
+            <CheckCircle2 className="w-3.5 h-3.5"/> Completado
+          </span>
+        );
       default:
-        return <Badge variant="outline">{estado}</Badge>;
+        return <Badge variant="outline" className="text-[11px] uppercase tracking-wider">{estado}</Badge>;
     }
   };
 
   if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
-        <span className="ml-2 text-brand-dark font-medium">Verificando accesos...</span>
+      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4 animate-in fade-in duration-500">
+        <div className="h-16 w-16 bg-brand-light/20 rounded-2xl flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+        </div>
+        <span className="text-brand-dark font-medium animate-pulse">Verificando autorizaciones financieras...</span>
       </div>
     );
   }
 
   return (
-    <div className="container py-8 space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-6rem)]">
       
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-           <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="w-5 h-5"/>
+           <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-gray-200 text-gray-500 hover:text-brand-dark hover:bg-gray-100 transition-colors" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5"/>
            </Button>
            <div>
-             <h1 className="text-2xl font-bold text-slate-900">
-               Solicitudes de Retiro: {project?.name || 'Cargando...'}
+             <h1 className="text-2xl font-extrabold text-brand-dark tracking-tight flex items-center gap-2">
+               Solicitudes de Retiro
+               {project?.name && (
+                 <span className="bg-brand-light/20 text-brand-blue text-sm px-3 py-1 rounded-full font-bold ml-2">
+                   {project.name}
+                 </span>
+               )}
              </h1>
-             <p className="text-sm text-gray-500">Autoriza pagos y quema tokens del proveedor.</p>
+             <p className="text-sm font-medium text-gray-500 mt-1">Autoriza pagos fiat y gestiona la quema de tokens M2.</p>
            </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Cola de Solicitudes</CardTitle>
-          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}/>
+      <Card className="rounded-2xl border-gray-100 shadow-lg shadow-brand-blue/5 overflow-hidden">
+        <div className="h-1.5 w-full bg-brand-dark" />
+        
+        <CardHeader className="flex flex-row items-center justify-between bg-white border-b border-gray-50 pb-4 pt-6">
+          <CardTitle className="text-lg text-brand-dark flex items-center gap-2">
+            <ArrowRightLeft className="h-5 w-5 text-brand-blue" />
+            Cola de Solicitudes
+          </CardTitle>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
+            disabled={loading}
+            className="h-9 px-3 text-brand-blue border-brand-light/50 hover:bg-brand-blue hover:text-white transition-all"
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")}/>
+            Actualizar
           </Button>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-brand-blue" /></div>
+            <div className="p-8 space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl animate-pulse">
+                  <div className="h-10 w-32 bg-gray-100 rounded-md" />
+                  <div className="h-10 w-24 bg-gray-100 rounded-md" />
+                  <div className="h-10 w-32 bg-gray-100 rounded-md" />
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="relative w-full overflow-auto">
+            <div className="relative w-full overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-700 font-medium">
+                <thead className="bg-gray-50/80 text-gray-500 font-semibold uppercase text-[10px] tracking-wider border-b border-gray-100">
                   <tr>
-                    <th className="px-4 py-3">Fecha</th>
-                    <th className="px-4 py-3">Proveedor</th>
-                    <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3">Monto</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3 text-right">Acción</th>
+                    <th className="px-6 py-4">Fecha de Solicitud</th>
+                    <th className="px-6 py-4">Proveedor</th>
+                    <th className="px-6 py-4">Tipo</th>
+                    <th className="px-6 py-4">Monto Solicitado</th>
+                    <th className="px-6 py-4">Estado</th>
+                    <th className="px-6 py-4 text-right">Acción Financiera</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-50 bg-white">
                   {canjes.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-500">
-                        No hay solicitudes pendientes en este proyecto.
+                      <td colSpan={6} className="py-16">
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                            <Inbox className="h-8 w-8 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-900">Sin solicitudes pendientes</h3>
+                          <p className="text-gray-500 max-w-sm mt-1">No hay canjes o retiros solicitados por los proveedores en este proyecto en este momento.</p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     canjes.map((c) => (
-                      <tr key={c._id} className="hover:bg-gray-50/50">
-                        <td className="px-4 py-3">{new Date(c.createdAt).toLocaleDateString()}</td>
-                        <td className="px-4 py-3">
+                      <tr key={c._id} className="hover:bg-brand-light/5 transition-colors group">
+                        <td className="px-6 py-4 font-medium text-gray-600">
+                          {new Date(c.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
                             <div className="flex flex-col">
-                                <span className="font-medium">{c.proveedorId?.email || 'Proveedor'}</span>
-                                <span className="text-xs text-gray-400 font-mono">ID: {c.proveedorId?._id || '...'}</span>
+                                <span className="font-bold text-brand-dark">{c.proveedorId?.email || 'Proveedor'}</span>
+                                <span className="text-[10px] text-gray-400 font-mono mt-0.5 uppercase">ID: {c.proveedorId?._id || '...'}</span>
                             </div>
                         </td>
-                        <td className="px-4 py-3 text-xs font-mono">{c.tipo}</td>
-                        <td className="px-4 py-3 font-bold text-slate-900">{c.amountTokens} m²</td>
-                        <td className="px-4 py-3">{getStatusBadge(c.estado)}</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-6 py-4">
+                          <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold uppercase">
+                            {c.tipo}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-extrabold text-brand-dark text-base">{c.amountTokens}</span>
+                          <span className="text-xs text-brand-blue font-bold ml-1">M2</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {getStatusBadge(c.estado)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
                           {c.estado === 'PENDIENTE' && (
                             <Button 
                                 size="sm" 
-                                className="bg-green-600 hover:bg-green-700 text-white"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 font-semibold h-9 transition-all hover:-translate-y-0.5"
                                 onClick={() => handleApprove(c)}
                                 disabled={!!processingId}
                             >
                                 {processingId === c._id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Procesando...
+                                    </>
                                 ) : (
                                     <>
-                                        <CheckCircle className="w-4 h-4 mr-1"/> Confirmar Pago
+                                        <CheckCircle className="w-4 h-4 mr-1.5"/> 
+                                        Aprobar y Quemar 
+                                        <Flame className="w-3.5 h-3.5 ml-1.5 text-emerald-200"/>
                                     </>
                                 )}
                             </Button>
                           )}
                           
                           {c.estado === 'COMPLETADO' && (
-                             <span className="text-xs text-gray-400 font-mono flex items-center justify-end gap-1">
-                                <Wallet className="w-3 h-3"/> Tokens Quemados
-                             </span>
+                             <div className="flex items-center justify-end gap-1.5 text-gray-400 group-hover:text-brand-blue transition-colors">
+                                <Wallet className="w-4 h-4"/> 
+                                <span className="text-xs font-bold tracking-wide uppercase">Tokens Quemados</span>
+                             </div>
                           )}
                         </td>
                       </tr>

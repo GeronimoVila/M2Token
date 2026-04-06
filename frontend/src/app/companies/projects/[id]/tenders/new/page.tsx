@@ -13,7 +13,16 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Loader2, Megaphone } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Loader2, 
+  Megaphone, 
+  FileText, 
+  Tag, 
+  DollarSign, 
+  CalendarDays, 
+  AlertTriangle 
+} from 'lucide-react';
 import Link from 'next/link';
 
 const formSchema = z.object({
@@ -93,43 +102,54 @@ export default function NewTenderPage() {
 
   if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
-        <span className="ml-2 text-brand-dark font-medium">Verificando accesos...</span>
+      <div className="flex flex-col h-[60vh] items-center justify-center space-y-4 animate-in fade-in duration-500">
+        <div className="h-16 w-16 bg-brand-light/20 rounded-2xl flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-salmon" />
+        </div>
+        <span className="text-brand-dark font-medium animate-pulse">Verificando permisos de acceso...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-6rem)]">
+
       <div className="flex items-center gap-4">
         <Link href={`/companies/projects/${projectId}/tenders`}>
-          <Button variant="outline" size="icon" className="h-9 w-9">
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-gray-200 text-gray-500 hover:text-brand-dark hover:bg-gray-100 transition-colors">
+            <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight">Nueva Licitación</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-3xl font-extrabold tracking-tight text-brand-dark">Nueva Licitación</h2>
+          <p className="text-sm font-medium text-gray-500">
             Publica una necesidad para que los proveedores te envíen sus propuestas.
           </p>
         </div>
       </div>
 
       <div className="grid gap-6">
-        <Card className="rounded-xl border shadow-sm">
-          <CardHeader>
-            <CardTitle>Detalles del Trabajo</CardTitle>
-            <CardDescription>Especifica qué necesitas y cuánto estás dispuesto a pagar por metro cuadrado.</CardDescription>
+        <Card className="rounded-2xl border-gray-100 shadow-lg shadow-gray-200/40 overflow-hidden">
+          <div className="h-2 w-full bg-brand-salmon" />
+          
+          <CardHeader className="bg-white border-b border-gray-50 pb-6 pt-8 px-8">
+            <CardTitle className="text-xl text-brand-dark flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-brand-salmon" />
+              Detalles del Trabajo
+            </CardTitle>
+            <CardDescription className="text-gray-500">
+              Especifica qué necesitas y cuánto estás dispuesto a pagar por metro cuadrado.
+            </CardDescription>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className="p-8 bg-gray-50/30">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 
                 {error && (
-                  <div className="p-3 bg-red-50 text-red-600 rounded-md text-sm border border-red-200">
-                    {error}
+                  <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5 shrink-0" />
+                    <span className="font-medium">{error}</span>
                   </div>
                 )}
 
@@ -138,9 +158,12 @@ export default function NewTenderPage() {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Título de la Licitación</FormLabel>
+                      <FormLabel className="text-brand-white font-semibold">Título de la Licitación <span className="text-brand-salmon">*</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="Ej: Instalación Eléctrica Completa Torre B" {...field} />
+                        <div className="relative">
+                          <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input className="pl-10 h-11 rounded-xl border-gray-200 focus-visible:ring-brand-blue" placeholder="Ej: Instalación Eléctrica Completa Torre B" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -152,16 +175,21 @@ export default function NewTenderPage() {
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Categoría / Especialidad requerida</FormLabel>
+                      <FormLabel className="text-brand-white font-semibold">Categoría / Especialidad requerida <span className="text-brand-salmon">*</span></FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingCategories}>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={loadingCategories ? "Cargando categorías..." : "Selecciona una categoría..."} />
-                          </SelectTrigger>
+                          <div className="relative">
+                            <Tag className="absolute left-3 top-3.5 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
+                            <SelectTrigger className="pl-10 h-11 rounded-xl border-gray-200 focus:ring-brand-blue">
+                              <SelectValue placeholder={loadingCategories ? "Cargando categorías..." : "Selecciona una categoría..."} />
+                            </SelectTrigger>
+                          </div>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="rounded-xl">
                           {categories.map(cat => (
-                            <SelectItem key={cat._id} value={cat._id}>{cat.label}</SelectItem>
+                            <SelectItem key={cat._id} value={cat._id} className="font-medium cursor-pointer focus:bg-brand-blue/10 focus:text-brand-blue">
+                              {cat.label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -175,11 +203,11 @@ export default function NewTenderPage() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descripción y Requisitos</FormLabel>
+                      <FormLabel className="text-brand-white font-semibold">Descripción y Requisitos <span className="text-brand-salmon">*</span></FormLabel>
                       <FormControl>
                         <textarea 
-                          className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder="Describe detalladamente qué materiales se necesitan, plazos de entrega, normativas, etc." 
+                          className="flex min-h-[140px] w-full rounded-xl border border-gray-200 bg-transparent px-4 py-3 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:border-transparent disabled:cursor-not-allowed disabled:opacity-50 transition-shadow resize-y"
+                          placeholder="Describe detalladamente qué materiales se necesitan, plazos de entrega, normativas, y cualquier requisito excluyente..." 
                           {...field} 
                         />
                       </FormControl>
@@ -188,23 +216,24 @@ export default function NewTenderPage() {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                   <FormField
                     control={form.control}
                     name="budgetM2"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Presupuesto Máximo</FormLabel>
+                        <FormLabel className="text-brand-white font-semibold">Presupuesto Referencia <span className="text-brand-salmon">*</span></FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <span className="absolute left-3 top-2.5 text-gray-500">$</span>
+                            <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                             <Input 
-                                className="pl-7"
+                                className="pl-10 h-11 rounded-xl border-gray-200 focus-visible:ring-brand-blue font-bold text-brand-white"
                                 type="number" 
                                 placeholder="0.00" 
                                 {...field}
                                 onChange={(e) => field.onChange(e.target.value)} 
                             />
+                            <span className="absolute right-4 top-3 text-xs font-bold text-gray-400 uppercase">USD / m²</span>
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -217,13 +246,17 @@ export default function NewTenderPage() {
                     name="deadline"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Fecha Límite para Postularse</FormLabel>
+                        <FormLabel className="text-brand-white font-semibold">Fecha Límite para Postularse <span className="text-brand-salmon">*</span></FormLabel>
                         <FormControl>
-                          <Input 
-                            type="date" 
-                            {...field}
-                            min={new Date().toISOString().split("T")[0]}
-                          />
+                          <div className="relative">
+                            <CalendarDays className="absolute left-3 top-3 h-4 w-4 text-gray-400 pointer-events-none" />
+                            <Input 
+                              type="date" 
+                              className="pl-10 h-11 rounded-xl border-gray-200 focus-visible:ring-brand-blue"
+                              {...field}
+                              min={new Date().toISOString().split("T")[0]}
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -231,18 +264,20 @@ export default function NewTenderPage() {
                   />
                 </div>
 
-                <div className="pt-4 flex justify-end gap-3 border-t">
-                  <Link href={`/companies/projects/${projectId}/tenders`}>
-                    <Button type="button" variant="ghost">Cancelar</Button>
+                <div className="pt-8 mt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                  <Link href={`/companies/projects/${projectId}/tenders`} className="w-full sm:w-auto">
+                    <Button type="button" variant="outline" className="w-full h-11 rounded-xl border-gray-200 hover:bg-gray-100 text-gray-700 font-semibold">
+                      Cancelar
+                    </Button>
                   </Link>
-                  <Button type="submit" className="bg-brand-salmon hover:bg-brand-salmon/90 text-white" disabled={isLoading}>
+                  <Button type="submit" disabled={isLoading} className="w-full sm:w-auto h-11 rounded-xl bg-brand-salmon hover:bg-brand-salmon/90 text-white font-semibold shadow-md shadow-brand-salmon/20 transition-all">
                     {isLoading ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publicando...
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Publicando...
                       </>
                     ) : (
                       <>
-                        <Megaphone className="mr-2 h-4 w-4" /> Publicar Licitación
+                        <Megaphone className="mr-2 h-5 w-5" /> Publicar Licitación
                       </>
                     )}
                   </Button>

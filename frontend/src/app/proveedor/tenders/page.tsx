@@ -5,8 +5,17 @@ import { useRouter } from 'next/navigation';
 import { tendersService } from '@/services/tendersService';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, MapPin, DollarSign, Calendar, Megaphone, Building2 } from 'lucide-react';
+import { 
+  Loader2, 
+  MapPin, 
+  DollarSign, 
+  CalendarDays, 
+  Megaphone, 
+  Building2,
+  LayoutGrid,
+  ArrowRight
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function ProviderMarketplacePage() {
   const router = useRouter();
@@ -33,69 +42,120 @@ export default function ProviderMarketplacePage() {
     fetchTenders();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8 animate-pulse min-h-screen">
+        <div className="space-y-2 mb-8">
+          <div className="h-8 w-64 bg-gray-200 rounded-md" />
+          <div className="h-4 w-96 bg-gray-100 rounded-md" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-72 bg-white rounded-2xl border border-gray-100 shadow-sm" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-brand-dark">Mercado de Licitaciones</h2>
-        <p className="text-gray-500">Encuentra nuevas oportunidades de trabajo y envía tus propuestas.</p>
+    <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-6rem)]">
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center text-brand-salmon shrink-0">
+            <Megaphone className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-brand-dark">Mercado de Licitaciones</h1>
+            <p className="text-sm font-medium text-gray-500 mt-1">Encuentra nuevas oportunidades de trabajo y envía tus propuestas.</p>
+          </div>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brand-blue h-10 w-10" /></div>
-      ) : tenders.length === 0 ? (
-        <Card className="border-dashed border-2 bg-gray-50/50">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
-              <Megaphone className="h-8 w-8 text-gray-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No hay licitaciones abiertas</h3>
-            <p className="text-gray-500 max-w-md text-center">
-              Actualmente no hay empresas buscando proveedores. Vuelve a revisar más tarde.
-            </p>
-          </CardContent>
-        </Card>
+      {tenders.length === 0 ? (
+        
+        <div className="flex flex-col items-center justify-center py-24 px-4 border-2 border-dashed border-gray-200 rounded-3xl bg-white/50 text-center animate-in zoom-in-95 duration-500">
+          <div className="h-20 w-20 bg-brand-light/20 rounded-full flex items-center justify-center mb-6">
+            <Megaphone className="h-10 w-10 text-gray-400" />
+          </div>
+          <h3 className="text-2xl font-bold text-brand-dark mb-2">No hay licitaciones abiertas</h3>
+          <p className="text-gray-500 max-w-md mb-8 font-medium">
+            Actualmente no hay empresas buscando proveedores. Vuelve a revisar más tarde para nuevas oportunidades.
+          </p>
+        </div>
+
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {tenders.map((tender) => (
-            <Card key={tender._id} className="hover:shadow-md transition-all flex flex-col">
-              <CardHeader className="pb-3 border-b bg-gray-50/50">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-semibold bg-brand-light/30 text-brand-blue px-2 py-1 rounded-md">
+            <Card key={tender._id} className="group relative overflow-hidden rounded-2xl border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-salmon/10 flex flex-col h-full">
+              
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-salmon transition-opacity" />
+              
+              <CardHeader className="pb-3 pt-6 border-b border-gray-50">
+                <div className="flex justify-between items-start mb-3 gap-2">
+                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider border shadow-sm bg-emerald-50 text-emerald-600 border-emerald-200 flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Abierta
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 px-2.5 py-1 rounded-md">
+                    <LayoutGrid className="h-3 w-3" />
                     {tender.category?.label || 'Categoría'}
                   </span>
-                  <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">Abierta</Badge>
                 </div>
-                <CardTitle className="text-lg line-clamp-1">{tender.title}</CardTitle>
-                <div className="flex items-center text-xs text-gray-500 mt-1">
-                  <Building2 className="h-3 w-3 mr-1" />
+                <CardTitle className="text-xl font-extrabold text-brand-dark line-clamp-2 leading-tight group-hover:text-brand-salmon transition-colors" title={tender.title}>
+                  {tender.title}
+                </CardTitle>
+                <div className="flex items-center text-xs font-bold text-brand-blue mt-2">
+                  <Building2 className="h-3.5 w-3.5 mr-1.5" />
                   {tender.company?.name || tender.company?.razonSocial || 'Empresa Privada'}
                 </div>
               </CardHeader>
-              <CardContent className="pt-4 flex-1">
-                <p className="text-sm text-gray-500 line-clamp-2 mb-4">
-                  {tender.description}
+
+              <CardContent className="pt-5 flex-1 flex flex-col">
+                <p className="text-sm text-gray-500 font-medium line-clamp-2 min-h-[2.5rem] mb-4">
+                  {tender.description || "Sin descripción detallada."}
                 </p>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm font-medium text-gray-700">
-                    <DollarSign className="h-4 w-4 text-green-600 mr-2" />
-                    Presupuesto tope: ${tender.budgetM2?.toLocaleString() || '0'} /m²
+                
+                <div className="space-y-3 bg-gray-50/80 p-4 rounded-xl border border-gray-100 mt-auto">
+                  <div className="flex items-center text-sm">
+                    <DollarSign className="h-4.5 w-4.5 text-emerald-600 mr-3 shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Presupuesto Tope</span>
+                      <span className="font-bold text-brand-dark">
+                        ${tender.budgetM2?.toLocaleString() || '0'} <span className="text-xs text-gray-500 font-medium">/m²</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <MapPin className="h-4 w-4 text-brand-salmon mr-2" />
-                    {tender.project?.address || 'Ubicación no especificada'}
+                  
+                  <div className="flex items-center text-sm">
+                    <MapPin className="h-4.5 w-4.5 text-brand-salmon mr-3 shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Ubicación Obra</span>
+                      <span className="font-semibold text-gray-700 line-clamp-1" title={tender.project?.address}>
+                        {tender.project?.address || 'No especificada'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <Calendar className="h-4 w-4 text-brand-blue mr-2" />
-                    Límite: {new Date(tender.deadline).toLocaleDateString()}
+
+                  <div className="flex items-center text-sm">
+                    <CalendarDays className="h-4.5 w-4.5 text-brand-blue mr-3 shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Fecha Límite</span>
+                      <span className="font-semibold text-gray-700">
+                        {tender.deadline ? new Date(tender.deadline).toLocaleDateString() : 'No definida'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="pt-4 border-t">
+
+              <CardFooter className="bg-white pt-4 pb-5 px-6 border-t border-gray-50">
                 <Button 
-                  className="w-full bg-brand-dark hover:bg-brand-dark/90 text-white"
+                  className="w-full h-11 rounded-xl bg-brand-dark hover:bg-brand-dark/90 text-white font-bold shadow-md shadow-brand-dark/20 transition-all duration-300 group-hover:bg-brand-salmon group-hover:shadow-brand-salmon/20"
                   onClick={() => router.push(`/proveedor/tenders/${tender._id}`)}
                 >
-                  Ver Detalles y Postularse
+                  Ver Detalles y Postularse <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardFooter>
             </Card>
