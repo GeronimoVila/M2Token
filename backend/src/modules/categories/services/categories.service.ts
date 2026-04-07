@@ -16,6 +16,11 @@ export class CategoriesService {
     if (existing) {
       throw new ConflictException('La categoría ya existe');
     }
+
+    if (!createCategoryDto.label) {
+      createCategoryDto.label = createCategoryDto.name;
+    }
+
     const createdCategory = new this.categoryModel(createCategoryDto);
     return createdCategory.save();
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +31,13 @@ function LoginFormContent() {
   const registered = searchParams.get("registered");
   const message = searchParams.get("message");
   const intendedRole = searchParams.get("role");
+  const urlError = searchParams.get("error");
+
+  useEffect(() => {
+    if (urlError === "account_suspended") {
+      setFormError("Tu sesión ha sido cerrada porque tu cuenta fue suspendida.");
+    }
+  }, [urlError]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -75,12 +82,13 @@ function LoginFormContent() {
         }
       }
     } catch (error: any) {
-      setFormError(error.message || "Credenciales inválidas.");
+      const backendError = error.response?.data?.error || error.response?.data?.message;
+      setFormError(backendError || error.message || "Credenciales inválidas.");
     }
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
         <CardDescription>Ingresa a tu cuenta para continuar.</CardDescription>

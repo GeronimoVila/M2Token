@@ -16,7 +16,7 @@ export class TendersController {
   @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN)
   async create(@Body() createTenderDto: CreateTenderDto, @Body('companyId') companyId: string, @Request() req) {
     const finalCompanyId = companyId || req.user.companyId; 
-    return this.tendersService.create(createTenderDto, finalCompanyId);
+    return this.tendersService.create(createTenderDto, finalCompanyId, req.user.id);
   }
 
   @Get('project/:projectId')

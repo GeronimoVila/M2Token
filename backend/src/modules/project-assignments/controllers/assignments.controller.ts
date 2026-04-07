@@ -15,7 +15,7 @@ export class AssignmentsController {
   @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN)
   async assign(@Req() req: any, @Body() dto: CreateAssignmentDto) {
     const companyId = req.user.companyId; 
-    return this.assignmentsService.assignProvider(companyId, dto);
+    return this.assignmentsService.assignProvider(companyId, dto, req.user.id);
   }
 
   @Get('project/:projectId')

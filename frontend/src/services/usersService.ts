@@ -2,6 +2,32 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (
+      error.response?.status === 403 && 
+      (error.response?.data?.error?.includes('suspendida') || 
+       error.response?.data?.message?.includes('suspendida') || 
+       error.response?.data?.error?.includes('revocada'))
+    ) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+        
+        if (!window.location.pathname.includes('/auth/login')) {
+          try {
+            await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+          } catch (logoutError) {
+          }
+          
+          window.location.href = '/auth/login?error=account_suspended';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export interface UserProfileData {
   name?: string;
   password?: string;
@@ -102,4 +128,30 @@ export const usersService = {
     
     return response.data.success !== undefined ? response.data.data : response.data;
   },
+
+  getAllUsers: async (page: number = 1, limit: number = 20, search: string = '') => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : '';
+    
+    const params = new URLSearchParams({ 
+      page: page.toString(), 
+      limit: limit.toString() 
+    });
+    
+    if (search) params.append('search', search);
+
+    const response = await axios.get(`${API_URL}/users?${params.toString()}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      withCredentials: true,
+    });
+    return response.data;
+  },
+
+  toggleUserStatus: async (userId: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : '';
+    const response = await axios.patch(`${API_URL}/users/${userId}/toggle-status`, {}, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      withCredentials: true,
+    });
+    return response.data;
+  }
 };

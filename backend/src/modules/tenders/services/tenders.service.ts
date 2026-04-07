@@ -3,21 +3,35 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Tender, TenderDocument, TenderStatus } from '../models/tender.model';
 import { CreateTenderDto } from '../dtos/create-tender.dto';
+import { AuditService } from '../../audit/services/audit.service';
 
 @Injectable()
 export class TendersService {
   constructor(
     @InjectModel(Tender.name) private tenderModel: Model<TenderDocument>,
+    private readonly auditService: AuditService
   ) {}
 
-  async create(createTenderDto: CreateTenderDto, companyId: string): Promise<Tender> {
+  async create(createTenderDto: CreateTenderDto, companyId: string, userId: string): Promise<Tender> {
     const newTender = new this.tenderModel({
       ...createTenderDto,
       project: new Types.ObjectId(createTenderDto.project),
       category: new Types.ObjectId(createTenderDto.category),
       company: new Types.ObjectId(companyId),
     });
-    return newTender.save();
+    
+    const savedTender = await newTender.save();
+
+    await this.auditService.logAction(
+      userId,
+      userId, 
+      'tender', 
+      savedTender._id.toString(), 
+      'created', 
+      { titulo: savedTender.title, presupuesto: savedTender.budgetM2 }
+    );
+
+    return savedTender;
   }
 
   async findByProject(projectId: string): Promise<Tender[]> {
@@ -42,7 +56,6 @@ export class TendersService {
     if (!tender) throw new NotFoundException('Licitación no encontrada');
     return tender;
   }
-
 
   async findOpenTenders(): Promise<Tender[]> {
     try {

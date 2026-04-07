@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { IUser } from 'src/modules/users/models/user.model';
 import { UsersService } from 'src/modules/users/services/users.service';
@@ -26,8 +26,14 @@ export class AuthService {
         role: UserRole.USER,
         isActive: true,
       });
-    } else if (!user.googleId) {
-      await this.usersService.update(user._id.toString(), { googleId: googleUser.googleId });
+    } else {
+      if (user.isActive === false) {
+        return { isSuspended: true }; 
+      }
+      
+      if (!user.googleId) {
+        await this.usersService.update(user._id.toString(), { googleId: googleUser.googleId });
+      }
     }
 
     const tokens = await this.generateTokens(user);
@@ -95,7 +101,7 @@ export class AuthService {
     const hashedPassword = await hashPassword(password); 
 
     const user = await this.usersService.create({
-      name, email, password: hashedPassword, role: initialRole
+      name, email, password: hashedPassword, role: initialRole, isActive: true
     });
 
     const tokens = await this.generateTokens(user);
@@ -113,6 +119,10 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.usersService.findByEmailWithPassword(email);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
+
+    if (user.isActive === false) {
+      throw new ForbiddenException('Tu cuenta ha sido suspendida por un administrador. Contacta a soporte.');
+    }
 
     const isMatch = await comparePassword(password, user.password || '');
     if (!isMatch) throw new UnauthorizedException('Credenciales inválidas');

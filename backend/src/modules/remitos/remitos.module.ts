@@ -7,6 +7,8 @@ import { AuthModule } from 'src/modules/auth/auth.module';
 import { UsersModule } from 'src/modules/users/users.module';
 import { IpfsService } from './services/ipfs.service';
 import { BlockchainModule } from '../../blockchain/blockchain.module';
+import { SettingsModule } from '../settings/settings.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { BlockchainModule } from '../../blockchain/blockchain.module';
     AuthModule,
     UsersModule,
     BlockchainModule,
+    SettingsModule,
+    AuditModule,
   ],
   controllers: [RemitosController],
   providers: [RemitosService, IpfsService],

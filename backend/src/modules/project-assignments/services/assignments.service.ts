@@ -4,16 +4,18 @@ import { Model, Types } from 'mongoose';
 import { IAssignment } from '../models/assignment.model';
 import { BaseRepository } from '../../../common/repositories/base.repository';
 import { CreateAssignmentDto } from '../dtos/create-assignment.dto';
+import { AuditService } from '../../audit/services/audit.service';
 
 @Injectable()
 export class AssignmentsService extends BaseRepository<IAssignment> {
   constructor(
-    @InjectModel('project_assignments') private readonly assignmentModel: Model<IAssignment>
+    @InjectModel('project_assignments') private readonly assignmentModel: Model<IAssignment>,
+    private readonly auditService: AuditService
   ) {
     super(assignmentModel);
   }
 
-  async assignProvider(companyId: string, dto: CreateAssignmentDto): Promise<IAssignment> {
+  async assignProvider(companyId: string, dto: CreateAssignmentDto, userId: string, montoAdjudicado?: number): Promise<IAssignment> {
     const { projectId, providerId } = dto;
 
     const existing = await this.findOne({ 
@@ -25,13 +27,31 @@ export class AssignmentsService extends BaseRepository<IAssignment> {
       throw new ConflictException('El proveedor ya está asignado a este proyecto.');
     }
 
-    return this.create({
+    const savedAssignment = await this.create({
       projectId: new Types.ObjectId(projectId),
       providerId: new Types.ObjectId(providerId),
       companyId: new Types.ObjectId(companyId),
       status: 'active',
       assignedAt: new Date(),
     });
+
+    const project = await this.assignmentModel.db.model('projects').findById(projectId).select('name').exec();
+    const provider = await this.assignmentModel.db.model('users').findById(providerId).select('name razonSocial').exec();
+
+    await this.auditService.logAction(
+      userId, 
+      userId, 
+      'assignment', 
+      savedAssignment._id.toString(), 
+      'created', 
+      { 
+        nombreProyecto: project?.name || 'Proyecto Desconocido',
+        nombreProveedor: provider?.name || provider?.razonSocial || 'Proveedor Desconocido',
+        montoAdjudicado: montoAdjudicado 
+      }
+    );
+
+    return savedAssignment;
   }
 
   async findProviderAssignments(providerId: string) {
@@ -73,9 +93,9 @@ export class AssignmentsService extends BaseRepository<IAssignment> {
   }
 
   async findMyProjects(providerId: string) {
-  return this.assignmentModel
-    .find({ providerId: providerId })
-    .populate('projectId')
-    .exec();
-}
+    return this.assignmentModel
+      .find({ providerId: providerId })
+      .populate('projectId')
+      .exec();
+  }
 }

@@ -19,5 +19,18 @@ export const dashboardService = {
 
     const response = await api.get('/dashboard/company', { headers });
     return response.data;
+  },
+
+  getSuperAdminDashboard: async () => {
+    let token = '';
+    if (typeof window !== 'undefined') {
+        token = localStorage.getItem('access_token') || localStorage.getItem('token') || '';
+        token = token.replace(/['"]+/g, '').trim();
+    }
+
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const response = await api.get('/dashboard/superadmin', { headers });
+    return response.data;
   }
 };

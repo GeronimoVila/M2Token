@@ -1,4 +1,4 @@
-import { z } from "zod";
+import axios from "axios";
 
 export interface LoginData {
   email: string;
@@ -20,20 +20,12 @@ export interface CompleteSocialData {
 
 export async function loginUser(data: LoginData) {
   try {
-    const response = await fetch(`${NESTJS_BACKEND_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-      credentials: "include",
+    const response = await axios.post(`${NESTJS_BACKEND_URL}/auth/login`, data, {
+      withCredentials: true,
     });
-
-    if (!response.ok) {
-      if (response.status === 401) throw new Error("Credenciales inválidas.");
-      throw new Error("Error en el servidor.");
-    }
-
-    const result = await response.json();
-    return result.success && result.data ? result.data : result;
+    
+    const result = response.data;
+    return result.success !== undefined ? result.data : result;
   } catch (error) {
     console.error("Error en loginUser:", error);
     throw error;
@@ -42,21 +34,12 @@ export async function loginUser(data: LoginData) {
 
 export async function registerUser(data: RegisterData) {
   try {
-    const response = await fetch(`${NESTJS_BACKEND_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-      credentials: "include", 
+    const response = await axios.post(`${NESTJS_BACKEND_URL}/auth/register`, data, {
+      withCredentials: true,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      const errorMessage = errorData.error || errorData.message || "Error al registrar usuario.";
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    return result.success && result.data ? result.data : result;
+    
+    const result = response.data;
+    return result.success !== undefined ? result.data : result;
   } catch (error) {
     console.error("Error en registerUser:", error);
     throw error;
@@ -65,20 +48,12 @@ export async function registerUser(data: RegisterData) {
 
 export async function completeSocialRegistration(data: CompleteSocialData) {
   try {
-    const response = await fetch(`${NESTJS_BACKEND_URL}/auth/complete-social-registration`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-      credentials: "include",
+    const response = await axios.patch(`${NESTJS_BACKEND_URL}/auth/complete-social-registration`, data, {
+      withCredentials: true,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error al completar el perfil.");
-    }
-
-    const result = await response.json();
-    return result.success && result.data ? result.data : result;
+    
+    const result = response.data;
+    return result.success !== undefined ? result.data : result;
   } catch (error) {
     console.error("Error en completeSocialRegistration:", error);
     throw error;

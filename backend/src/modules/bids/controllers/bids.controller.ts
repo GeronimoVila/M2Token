@@ -33,6 +33,6 @@ export class BidsController {
   @Post(':id/adjudicate')
   @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN)
   async adjudicateBid(@Param('id', ParseMongoIdPipe) bidId: string, @Request() req) {
-    return this.bidsService.adjudicate(bidId, req.user.companyId);
+    return this.bidsService.adjudicate(bidId, req.user.companyId, req.user.id);
   }
 }

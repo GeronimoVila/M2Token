@@ -22,10 +22,10 @@ export class ProjectsController {
     const companyId = req.user.companyId;
     if (!companyId) throw new ForbiddenException('Solo empresas pueden crear proyectos');
     
-    return this.projectsService.create({
+    return this.projectsService.createProject({
       ...createProjectDto,
       companyId: new Types.ObjectId(companyId),
-    });
+    }, req.user.id);
   }
 
   @Get()
@@ -33,6 +33,10 @@ export class ProjectsController {
     if (req.user.role === 'proveedor') {
        return []; 
     }
+    if (req.user.role === 'superadmin') {
+       return this.projectsService.findAll({}); 
+    }
+
     const companyId = req.user.companyId;
     return this.projectsService.findAllByCompany(companyId);
   }
@@ -40,6 +44,10 @@ export class ProjectsController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: any) {
     const user = req.user;
+
+    if (user.role === 'superadmin') {
+      return this.projectsService.findById(id);
+    }
 
     if (user.role === 'proveedor') {
       const isAssigned = await this.assignmentsService.findOne({

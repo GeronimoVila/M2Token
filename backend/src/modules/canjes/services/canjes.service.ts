@@ -6,6 +6,7 @@ import { CreateCanjeDto } from '../dtos/create-canje.dto';
 import { BlockchainService } from '../../../blockchain/blockchain.service';
 import { UsersService } from '../../users/services/users.service';
 import { ProjectsService } from '../../projects/services/projects.service';
+import { AuditService } from '../../audit/services/audit.service';
 
 @Injectable()
 export class CanjesService {
@@ -14,10 +15,10 @@ export class CanjesService {
     private readonly blockchainService: BlockchainService,
     private readonly usersService: UsersService,
     private readonly projectsService: ProjectsService,
+    private readonly auditService: AuditService
   ) {}
 
   async solicitarCanje(userId: string, dto: CreateCanjeDto) {
-    
     const user = await this.usersService.findById(userId);
     if (!user || !user.walletAddress) {
       throw new BadRequestException('Usuario no tiene wallet configurada');
@@ -57,7 +58,27 @@ export class CanjesService {
       descripcionActivo: dto.descripcionActivo
     });
 
-    return await nuevoCanje.save();
+    const savedCanje = await nuevoCanje.save();
+
+    const projectDoc = await this.canjeModel.db.model('projects').findById(savedCanje.projectId).select('name companyId').exec();
+    const companyDoc = projectDoc ? await this.canjeModel.db.model('companies').findById(projectDoc.companyId).select('name').exec() : null;
+
+    await this.auditService.logAction(
+      userId, 
+      userId, 
+      'canje', 
+      savedCanje._id.toString(), 
+      'created', 
+      { 
+        tipo: savedCanje.tipo,
+        montoM2T: savedCanje.amountTokens, 
+        nombreProyecto: projectDoc?.name || 'Proyecto Desconocido',
+        nombreEmpresa: companyDoc?.name || 'Empresa Desconocida',
+        descripcion: savedCanje.descripcionActivo 
+      }
+    );
+
+    return savedCanje;
   }
 
   async confirmarPagoYQuemar(canjeId: string, adminUserId: string) {
@@ -84,6 +105,15 @@ export class CanjesService {
       canje.txHash = result.txHash;
       canje.burnedAt = new Date();
       await canje.save();
+
+      await this.auditService.logAction(
+        adminUserId, 
+        adminUserId, 
+        'canje', 
+        canje._id.toString(), 
+        'approved', 
+        { tipo: canje.tipo, montoM2T: canje.amountTokens, txHash: result.txHash }
+      );
 
       return { success: true, txHash: result.txHash };
 

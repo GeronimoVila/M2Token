@@ -3,9 +3,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { type Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { loginSchema, type LoginData } from '@common/schemas/auth.schema';
 import { RegisterDto } from '../dtos/register.dto';
 import { CompleteSocialRegisterDto } from '../dtos/complete-social-register.dto';
+import { LoginDto } from '../dtos/login.dto'; 
 
 @Controller('auth')
 export class AuthController {
@@ -13,13 +13,20 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {
+  async googleAuth(@Req() req: any) {
   }
 
-@Get('google/callback')
+  @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const { tokens, user } = await this.authService.validateGoogleUser(req.user);
+  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
+    const result = await this.authService.validateGoogleUser(req.user);
+
+    if (result.isSuspended) {
+      return res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=account_suspended`);
+    }
+
+    const tokens = result.tokens!;
+    const user = result.user!;
 
     res.cookie('access_token', tokens.accessToken, {
       httpOnly: true,
@@ -61,9 +68,8 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginData: LoginData, @Res({ passthrough: true }) res: Response) {
-    loginSchema.parse(loginData);
-    const { accessToken, user } = await this.authService.login(loginData);
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const { accessToken, user } = await this.authService.login(loginDto);
     
     res.cookie('access_token', accessToken, {
       httpOnly: true,

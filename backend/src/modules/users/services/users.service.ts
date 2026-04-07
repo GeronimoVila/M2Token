@@ -6,11 +6,13 @@ import { BaseRepository } from '../../../common/repositories/base.repository';
 import { CompleteProfileDto } from '../dtos/complete-profile.dto';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
 import { hashPassword } from '../../../utils/password';
+import { AuditService } from '../../audit/services/audit.service';
 
 @Injectable()
 export class UsersService extends BaseRepository<IUser> {
   constructor(
-    @InjectModel('users') private readonly userModel: Model<IUser>
+    @InjectModel('users') private readonly userModel: Model<IUser>,
+    private readonly auditService: AuditService
   ) {
     super(userModel);
   }
@@ -160,5 +162,58 @@ export class UsersService extends BaseRepository<IUser> {
       { $set: updateFields },
       { new: true }
     ).exec();
+  }
+
+  async findAllUsers(page: number = 1, limit: number = 20, search?: string) {
+    const query: any = {};
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { cuit: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const total = await this.userModel.countDocuments(query);
+    const users = await this.userModel.find(query)
+      .select('-password -refreshToken')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return {
+      data: users,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  async toggleUserStatus(targetUserId: string, adminUserId: string) {
+    const user = await this.findById(targetUserId);
+    if (!user) throw new BadRequestException('Usuario no encontrado');
+
+    user.isActive = !user.isActive;
+    const updatedUser = await user.save();
+
+    const actionName = updatedUser.isActive ? 'reactivado' : 'suspendido';
+    await this.auditService.logAction(
+      adminUserId, 
+      adminUserId, 
+      'user', 
+      updatedUser._id.toString(), 
+      'updated', 
+      { 
+        detalle: `Usuario ${actionName}`, 
+        emailUsuarioAfectado: updatedUser.email 
+      }
+    );
+
+    return { message: `Usuario ${actionName} exitosamente`, isActive: updatedUser.isActive };
   }
 }

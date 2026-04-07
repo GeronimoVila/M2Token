@@ -51,7 +51,7 @@ export class BidsService {
       .exec();
   }
 
-  async adjudicate(bidId: string, companyId: string) {
+  async adjudicate(bidId: string, companyId: string, userId: string) {
     const winningBid = await this.bidModel.findById(bidId);
     if (!winningBid) throw new NotFoundException('Postulación no encontrada');
 
@@ -73,10 +73,15 @@ export class BidsService {
     tender.status = TenderStatus.AWARDED;
     await tender.save();
 
-    await this.assignmentsService.assignProvider(companyId, {
-      projectId: tender.project.toString(),
-      providerId: winningBid.provider.toString(),
-    });
+    await this.assignmentsService.assignProvider(
+      companyId, 
+      {
+        projectId: tender.project.toString(),
+        providerId: winningBid.provider.toString(),
+      }, 
+      userId, 
+      winningBid.amount
+    );
 
     return { 
       success: true, 

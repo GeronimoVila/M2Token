@@ -15,6 +15,8 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { TendersModule } from './modules/tenders/tenders.module';
 import { BidsModule } from './modules/bids/bids.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -58,6 +60,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     TendersModule,
     BidsModule,
     DashboardModule,
+    AuditModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

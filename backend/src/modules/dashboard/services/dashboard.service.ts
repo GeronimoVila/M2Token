@@ -82,4 +82,65 @@ export class DashboardService {
       throw error;
     }
   }
+
+  async getSuperAdminDashboard() {
+    try {
+      const totalUsers = await this.connection.collection('users').countDocuments();
+      const usersByRole = await this.connection.collection('users').aggregate([
+        { $group: { _id: "$role", count: { $sum: 1 } } }
+      ]).toArray();
+
+      const totalProjects = await this.connection.collection('projects').countDocuments();
+
+      const remitosStats = await this.connection.collection('remitos').aggregate([
+        { $group: { _id: "$estado", count: { $sum: 1 }, totalMonto: { $sum: "$monto" } } }
+      ]).toArray();
+
+      const validadoStats = remitosStats.find(r => r._id === 'validado');
+      const totalTokenized = validadoStats ? validadoStats.totalMonto : 0;
+      const totalRemitos = remitosStats.reduce((acc, curr) => acc + curr.count, 0);
+
+      const recentAuditLogs = await this.connection.collection('auditLogs').aggregate([
+        { $sort: { timestamp: -1 } },
+        { $limit: 15 },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'userObj'
+          }
+        },
+        { 
+          $unwind: { path: '$userObj', preserveNullAndEmptyArrays: true } 
+        }
+      ]).toArray();
+
+      return {
+        kpis: {
+          totalUsers,
+          totalProjects,
+          totalTokenized,
+          totalRemitos
+        },
+        usersByRole,
+        remitosStats,
+        recentActivity: recentAuditLogs.map(log => ({
+          id: log._id.toString(),
+          action: log.action,
+          entity: log.entity,
+          time: log.timestamp,
+          metadata: log.metadata || {},
+          user: {
+            name: log.userObj?.name || 'Usuario Eliminado/Sistema',
+            role: log.userObj?.role || 'Desconocido'
+          }
+        }))
+      };
+
+    } catch (error) {
+      console.error("[SUPERADMIN DASHBOARD] ❌ Error:", error);
+      throw error;
+    }
+  }
 }

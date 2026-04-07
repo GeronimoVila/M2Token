@@ -56,7 +56,7 @@ export default function RemitoForm({ projectId, token }: RemitoFormProps) {
         file: file
       }, token);
 
-      alert('✅ Remito cargado y tokenizado correctamente');
+      alert('✅ Remito cargado correctamente');
       router.refresh();
       router.push(`/proveedor/projects/${projectId}`);
 

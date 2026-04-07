@@ -6,9 +6,9 @@ import * as M2TokenABI from '../abis/M2Token.json';
 @Injectable()
 export class BlockchainService implements OnModuleInit {
   private readonly logger = new Logger(BlockchainService.name);
-  private provider: ethers.JsonRpcProvider;
-  private wallet: ethers.Wallet;
-  private contract: ethers.Contract;
+  private provider!: ethers.JsonRpcProvider;
+  private wallet!: ethers.Wallet;
+  private contract!: ethers.Contract;
 
   constructor(private configService: ConfigService) {}
 
@@ -42,14 +42,12 @@ export class BlockchainService implements OnModuleInit {
    * Emite tokens para un proveedor basado en un remito validado.
    * @param toAddress Dirección de la wallet del proveedor (0x...)
    * @param projectId ID del proyecto (ej: 1 para Torre Alvear)
-   * @param amountM2 Cantidad de metros cuadrados (se multiplicará por 100)
+   * @param amountTokens Cantidad EXACTA de tokens a emitir (ya calculada en RemitosService)
    * @param mongoRemitoId ID único del remito en MongoDB
    */
-  async mintTokens(toAddress: string, projectId: number, amountM2: number, mongoRemitoId: string) {
+  async mintTokens(toAddress: string, projectId: number, amountTokens: number, mongoRemitoId: string) {
     try {
-      this.logger.log(`🏗️ Iniciando Minting: ${amountM2}m2 para ${toAddress} (Proyecto ${projectId})`);
-
-      const tokenAmount = amountM2 * 100;
+      this.logger.log(`🏗️ Iniciando Minting: ${amountTokens} tokens para ${toAddress} (Proyecto ${projectId})`);
 
       const network = await this.provider.getNetwork();
       const chainId = network.chainId;
@@ -63,7 +61,7 @@ export class BlockchainService implements OnModuleInit {
       const tx = await this.contract.mintRemito(
         toAddress,
         projectId,
-        tokenAmount,
+        amountTokens, 
         remitoHash
       );
 
@@ -77,10 +75,10 @@ export class BlockchainService implements OnModuleInit {
         success: true,
         txHash: tx.hash,
         blockNumber: receipt.blockNumber,
-        tokensMinted: tokenAmount
+        tokensMinted: amountTokens
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`❌ Error en Minting: ${error.message}`);
       if (error.message.includes('Remito ya procesado')) {
         throw new Error('Este remito ya fue pagado en la Blockchain (Doble Gasto prevenido).');
@@ -94,7 +92,7 @@ export class BlockchainService implements OnModuleInit {
       const balance = await this.contract.balanceOf(walletAddress, projectId);
       
       return balance.toString();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error consultando saldo: ${error.message}`);
       throw error;
     }
@@ -120,7 +118,7 @@ export class BlockchainService implements OnModuleInit {
         blockNumber: receipt.blockNumber
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error en Burn: ${error.message}`);
       throw error;
     }

@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Req, UseGuards, Query, Post } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Req, UseGuards, Query, Post, Param } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'; 
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -44,5 +44,23 @@ export class UsersController {
   @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN, UserRole.COMPANY_APPROVER, UserRole.COMPANY_VIEWER)
   async getTeam(@Req() req: any) {
     return this.usersService.getCompanyTeam(req.user.id);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async getAllUsers(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+    @Query('search') search?: string
+  ) {
+    return this.usersService.findAllUsers(parseInt(page, 10), parseInt(limit, 10), search);
+  }
+
+  @Patch(':id/toggle-status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  async toggleUserStatus(@Param('id') targetUserId: string, @Req() req: any) {
+    return this.usersService.toggleUserStatus(targetUserId, req.user.id);
   }
 }
