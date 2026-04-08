@@ -23,8 +23,26 @@ export class AssignmentsService extends BaseRepository<IAssignment> {
       providerId: new Types.ObjectId(providerId) 
     });
 
+    const project = await this.assignmentModel.db.model('projects').findById(projectId).select('name').exec();
+    const provider = await this.assignmentModel.db.model('users').findById(providerId).select('name razonSocial').exec();
+
     if (existing) {
-      throw new ConflictException('El proveedor ya está asignado a este proyecto.');
+      if (montoAdjudicado) {
+        await this.auditService.logAction(
+          userId, 
+          userId, 
+          'assignment', 
+          existing._id.toString(), 
+          'updated', 
+          { 
+            nombreProyecto: project?.name || 'Proyecto Desconocido',
+            nombreProveedor: provider?.name || provider?.razonSocial || 'Proveedor Desconocido',
+            montoAdjudicado: montoAdjudicado,
+            nota: 'Adjudicación adicional a proveedor que ya era parte del proyecto.'
+          }
+        );
+      }
+      return existing;
     }
 
     const savedAssignment = await this.create({
@@ -34,9 +52,6 @@ export class AssignmentsService extends BaseRepository<IAssignment> {
       status: 'active',
       assignedAt: new Date(),
     });
-
-    const project = await this.assignmentModel.db.model('projects').findById(projectId).select('name').exec();
-    const provider = await this.assignmentModel.db.model('users').findById(providerId).select('name razonSocial').exec();
 
     await this.auditService.logAction(
       userId, 

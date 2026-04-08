@@ -13,28 +13,28 @@ export enum TenderStatus {
 @Schema({ timestamps: true })
 export class Tender {
   @Prop({ required: true })
-  title: string;
+  title!: string;
 
   @Prop({ required: true })
-  description: string;
+  description!: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Category', required: true })
-  category: Types.ObjectId;
+  category!: Types.ObjectId;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'projects', required: true })
-  project: Types.ObjectId;
+  project!: Types.ObjectId;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'companies', required: true })
-  company: Types.ObjectId;
+  company!: Types.ObjectId;
 
   @Prop({ required: true })
-  budgetM2: number;
+  budgetM2!: number;
 
   @Prop({ required: true })
-  deadline: Date;
+  deadline!: Date;
 
   @Prop({ required: true, enum: TenderStatus, default: TenderStatus.OPEN })
-  status: TenderStatus;
+  status!: TenderStatus;
 }
 
 export const TenderSchema = SchemaFactory.createForClass(Tender);

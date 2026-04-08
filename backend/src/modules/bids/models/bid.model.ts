@@ -12,19 +12,19 @@ export enum BidStatus {
 @Schema({ timestamps: true })
 export class Bid {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Tender', required: true })
-  tender: Types.ObjectId;
+  tender!: Types.ObjectId;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'users', required: true })
-  provider: Types.ObjectId;
+  provider!: Types.ObjectId;
 
   @Prop({ required: true })
-  amount: number;
+  amount!: number;
 
   @Prop()
-  message: string;
+  message!: string;
 
   @Prop({ required: true, enum: BidStatus, default: BidStatus.PENDING })
-  status: BidStatus;
+  status!: BidStatus;
 }
 
 export const BidSchema = SchemaFactory.createForClass(Bid);

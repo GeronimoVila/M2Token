@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Param, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, Req, Param, ForbiddenException } from '@nestjs/common';
+import { UpdateProjectDto } from '../dtos/update-project.dto';
 import { ProjectsService } from '../services/projects.service';
 import { CreateProjectDto } from '../dtos/create-project.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -64,5 +65,14 @@ export class ProjectsController {
 
     const companyId = user.companyId;
     return this.projectsService.findOneById(id, companyId);
+  }
+
+  @Roles(UserRole.COMPANY_OWNER, UserRole.COMPANY_ADMIN)
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto, @Req() req: any) {
+    const companyId = req.user.companyId;
+    if (!companyId) throw new ForbiddenException('Solo empresas pueden editar proyectos');
+    
+    return this.projectsService.updateProject(id, companyId, updateProjectDto, req.user.id);
   }
 }

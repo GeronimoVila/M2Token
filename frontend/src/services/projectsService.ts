@@ -72,4 +72,21 @@ export const projectsService = {
     const result = await res.json();
     return result.success ? result.data : result;
   },
+  
+  async update(id: string, data: Partial<CreateProjectData>) {
+    const res = await fetch(`${API_URL}/projects/${id}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Error al actualizar el proyecto');
+    }
+
+    const result = await res.json();
+    return result.success ? result.data : result;
+  },
 };

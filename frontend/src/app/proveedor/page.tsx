@@ -6,22 +6,17 @@ import { remitosService } from '@/services/remitosService';
 import { assignmentsService } from '@/services/assignmentsService';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { 
   FileText, 
   CheckCircle2, 
   Building2, 
   Clock, 
-  Loader2, 
-  ArrowRight,
   Activity,
   AlertCircle,
-  TrendingUp,
   History
 } from 'lucide-react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell,
-  AreaChart, Area
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell
 } from 'recharts';
 
 interface DashboardData {
@@ -57,12 +52,12 @@ export default function ProveedorDashboard() {
         const projectsArray = Array.isArray(projectsRes?.data) ? projectsRes.data : (Array.isArray(projectsRes) ? projectsRes : []);
 
         const pending = remitosArray.filter((r: any) => r.estado?.toLowerCase() === 'pendiente').length;
-        const approved = remitosArray.filter((r: any) => r.estado?.toLowerCase() === 'aprobado').length;
+        const approved = remitosArray.filter((r: any) => r.estado?.toLowerCase() === 'validado' || r.estado?.toLowerCase() === 'aprobado').length;
         const rejected = remitosArray.filter((r: any) => r.estado?.toLowerCase() === 'rechazado').length;
 
         const statusChart = [
           { name: 'Pendientes', cantidad: pending, color: '#F59E0B' },
-          { name: 'Aprobados', cantidad: approved, color: '#10B981' },
+          { name: 'Validados', cantidad: approved, color: '#10B981' },
           { name: 'Rechazados', cantidad: rejected, color: '#EF4444' },
         ];
 
@@ -119,7 +114,7 @@ export default function ProveedorDashboard() {
     );
   }
 
-  const { stats, recentRemitos, statusChart, trendChart } = data;
+  const { stats, recentRemitos, statusChart } = data;
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-6rem)]">
@@ -166,7 +161,7 @@ export default function ProveedorDashboard() {
         <Card className="border-none shadow-md hover:shadow-lg transition-all bg-white overflow-hidden relative group">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-bold text-gray-500 uppercase tracking-wider">Aprobados</CardTitle>
+            <CardTitle className="text-sm font-bold text-gray-500 uppercase tracking-wider">Validados</CardTitle>
             <div className="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
               <CheckCircle2 className="h-5 w-5" />
             </div>
@@ -241,25 +236,45 @@ export default function ProveedorDashboard() {
           <CardContent className="pt-4 flex-1 flex flex-col">
             {recentRemitos.length > 0 ? (
               <div className="space-y-4">
-                {recentRemitos.map((remito) => (
-                  <div key={remito._id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
-                    <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
-                      remito.estado?.toLowerCase() === 'aprobado' ? 'bg-emerald-50 text-emerald-600' : 
-                      remito.estado?.toLowerCase() === 'rechazado' ? 'bg-red-50 text-red-600' : 
-                      'bg-amber-50 text-amber-600'
-                    }`}>
-                      {remito.estado?.toLowerCase() === 'aprobado' ? <CheckCircle2 className="h-4 w-4" /> : 
-                       remito.estado?.toLowerCase() === 'rechazado' ? <AlertCircle className="h-4 w-4" /> : 
-                       <Clock className="h-4 w-4" />}
+                {recentRemitos.map((remito) => {
+                  const isApproved = remito.estado?.toLowerCase() === 'validado' || remito.estado?.toLowerCase() === 'aprobado';
+                  const isRejected = remito.estado?.toLowerCase() === 'rechazado';
+
+                  return (
+                    <div key={remito._id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                      
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
+                        isApproved ? 'bg-emerald-50 text-emerald-600' : 
+                        isRejected ? 'bg-red-50 text-red-600' : 
+                        'bg-amber-50 text-amber-600'
+                      }`}>
+                        {isApproved ? <CheckCircle2 className="h-4 w-4" /> : 
+                         isRejected ? <AlertCircle className="h-4 w-4" /> : 
+                         <Clock className="h-4 w-4" />}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-300 truncate">
+                          Remito #{remito.numeroRemito || 'S/N'}
+                        </p>
+                        <p className="text-xs text-gray-400 font-medium truncate mt-0.5">
+                          {remito.projectId?.name || 'Proyecto no especificado'}
+                        </p>
+                      </div>
+
+                      <div className="shrink-0">
+                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-widest ${
+                          isApproved ? 'bg-emerald-100 text-emerald-700' :
+                          isRejected ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {isApproved ? 'Validado' : isRejected ? 'Rechazado' : 'Pendiente'}
+                        </span>
+                      </div>
+
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-300 truncate">Remito #{remito.numero || 'S/N'}</p>
-                      <p className="text-xs text-gray-500 font-medium truncate mt-0.5">
-                        {remito.proyecto?.name || 'Proyecto no especificado'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-4">

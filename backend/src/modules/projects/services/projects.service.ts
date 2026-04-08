@@ -56,4 +56,26 @@ export class ProjectsService extends BaseRepository<IProject> {
 
     return project;
   }
+
+  async updateProject(projectId: string, companyId: string | Types.ObjectId, data: any, userId: string): Promise<IProject> {
+    const project = await this.findOneById(projectId, companyId);
+    
+    const updatedProject = await this.update(projectId, data);
+
+    await this.auditService.logAction(
+      userId,
+      userId, 
+      'project', 
+      projectId, 
+      'updated', 
+      { 
+        nombreProyecto: updatedProject?.name || project.name, 
+        estadoAnterior: project.status,
+        nuevoEstado: updatedProject?.status,
+        nota: 'Configuración del proyecto actualizada'
+      }
+    );
+    
+    return updatedProject as IProject;
+  }
 }

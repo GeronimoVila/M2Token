@@ -38,6 +38,7 @@ export default function ProjectDashboardPage() {
   const canManageCanjes = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
   const canManageProviders = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
   const canManageTenders = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
+  const canEditProject = user?.role === 'empresa_owner' || user?.role === 'empresa_admin';
 
   const fetchRemitos = useCallback(async () => {
     const token = localStorage.getItem('access_token') || '';
@@ -280,18 +281,33 @@ export default function ProjectDashboardPage() {
               </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 border-gray-200 opacity-60 relative overflow-hidden">
+          <Card 
+              className={cn(
+                "relative overflow-hidden transition-all duration-300 border-gray-200",
+                canEditProject ? "cursor-pointer hover:shadow-xl hover:shadow-gray-200 hover:-translate-y-1 group bg-white" : "bg-gray-50 opacity-60"
+              )}
+              onClick={() => { if (canEditProject) router.push(`/companies/projects/${projectId}/settings`); }}
+          >
               <CardHeader className="pb-3 pt-6">
-                  <div className="w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center mb-4 text-gray-500">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors",
+                    canEditProject ? "bg-gray-100 text-gray-600 group-hover:bg-gray-800 group-hover:text-white" : "bg-gray-200 text-gray-400"
+                  )}>
                       <Settings className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-lg font-bold text-gray-600">Configuración</CardTitle>
+                  <CardTitle className="text-lg font-bold text-gray-700 group-hover:text-gray-900 transition-colors">Configuración</CardTitle>
               </CardHeader>
               <CardContent>
-                  <p className="text-sm text-gray-500 mb-4">Editar proyecto o finalizar obra.</p>
-                  <div className="flex items-center text-xs font-bold text-gray-500 bg-gray-200 w-fit px-2 py-1 rounded-md">
-                      Sin hacer
-                  </div>
+                  <p className="text-sm text-gray-500 mb-2">Editar proyecto o finalizar obra.</p>
+                  {canEditProject ? (
+                    <div className="flex items-center text-xs font-bold text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity mt-4">
+                      Modificar <ArrowRight className="ml-1 h-3 w-3" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-xs font-bold text-gray-400 mt-4 bg-gray-100 w-fit px-2 py-1 rounded-md">
+                      <Lock className="mr-1 h-3 w-3" /> Acceso Restringido
+                    </div>
+                  )}
               </CardContent>
           </Card>
         </div>
