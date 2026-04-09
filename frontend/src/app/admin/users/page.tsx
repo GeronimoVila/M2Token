@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2, Users, ShieldAlert, ShieldCheck, ChevronLeft, ChevronRight, X, Mail, Phone, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -62,9 +63,14 @@ export default function AdminUsersPage() {
     try {
       await usersService.toggleUserStatus(userId);
       setUsers(users.map(u => u._id === userId ? { ...u, isActive: !u.isActive } : u));
+      toast.success("Estado actualizado", {
+        description: "El estado del usuario ha sido modificado exitosamente."
+      });
     } catch (error) {
       console.error('Error toggling status:', error);
-      alert('Hubo un error al cambiar el estado del usuario.');
+      toast.error("Error al actualizar", {
+        description: "Hubo un error al cambiar el estado del usuario."
+      });
     } finally {
       setActionLoading(null);
     }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, UserPlus, Loader2, Briefcase, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function SearchProvidersPage() {
   const router = useRouter();
@@ -37,9 +38,15 @@ export default function SearchProvidersPage() {
     setAssigningId(providerId);
     try {
       await assignmentsService.assignProvider({ projectId, providerId });
+      
+      toast.success("Proveedor asignado", {
+        description: "El profesional ha sido incorporado al proyecto."
+      });
       router.push(`/companies/projects/${projectId}/assign`);
     } catch (error: any) {
-      alert(error.message || 'Error al asignar (¿Ya está asignado?)');
+      toast.error("No se pudo asignar", {
+        description: error.message || 'Es posible que este proveedor ya esté asignado a la obra.'
+      });
     } finally {
       setAssigningId(null);
     }

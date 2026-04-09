@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Save, Coins, Pickaxe, Settings, Plus, Trash2, Info, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function AdminSettingsPage() {
   const [precioM2, setPrecioM2] = useState<number | ''>('');
@@ -47,7 +48,11 @@ export default function AdminSettingsPage() {
   }, []);
 
   const handleSaveGlobal = async () => {
-    if (!precioM2 || !tokensPorM2) return alert("Completa todos los campos financieros");
+    if (!precioM2 || !tokensPorM2) {
+      return toast.warning("Faltan datos", {
+        description: "Completa todos los campos financieros."
+      });
+    }
     
     setSavingGlobal(true);
     try {
@@ -55,10 +60,14 @@ export default function AdminSettingsPage() {
         precioM2: Number(precioM2), 
         tokensPorM2: Number(tokensPorM2) 
       });
-      alert("Configuraciones globales guardadas exitosamente.");
+      toast.success("¡Configuración Guardada!", {
+        description: "Configuraciones globales guardadas exitosamente."
+      });
     } catch (error) {
       console.error("Error guardando configuraciones:", error);
-      alert("Hubo un error al guardar las configuraciones.");
+      toast.error("Error de conexión", {
+        description: "Hubo un error al guardar las configuraciones."
+      });
     } finally {
       setSavingGlobal(false);
     }
@@ -73,9 +82,14 @@ export default function AdminSettingsPage() {
       await settingsService.createCategory(newCategoryName);
       setNewCategoryName('');
       fetchData();
+      toast.success("Rubro agregado", {
+        description: "La categoría se ha creado exitosamente."
+      });
     } catch (error) {
       console.error("Error agregando categoría:", error);
-      alert("Error al crear la categoría.");
+      toast.error("Error al crear la categoría", {
+        description: "Verifica tu conexión e intenta nuevamente."
+      });
     } finally {
       setAddingCategory(false);
     }
@@ -86,9 +100,14 @@ export default function AdminSettingsPage() {
     try {
       await settingsService.deleteCategory(id);
       setCategories(categories.filter(c => c._id !== id && c.id !== id));
+      toast.success("Rubro eliminado", {
+        description: "La categoría ha sido eliminada del sistema."
+      });
     } catch (error) {
       console.error("Error eliminando categoría:", error);
-      alert("No se pudo eliminar la categoría (podría estar en uso).");
+      toast.error("Error al eliminar", {
+        description: "No se pudo eliminar la categoría (podría estar en uso)."
+      });
     }
   };
 
@@ -148,7 +167,7 @@ export default function AdminSettingsPage() {
                     <Input 
                       type="number" 
                       placeholder="1000" 
-                      className="pl-14 h-12 rounded-xl bg-slate-50/50 border-slate-200 focus:bg-white transition-all text-lg font-bold"
+                      className="pl-14 h-12 rounded-xl bg-slate-50/50 text-slate-500 border-slate-200 focus:bg-white transition-all text-lg font-bold"
                       value={precioM2}
                       onChange={(e) => setPrecioM2(e.target.value ? Number(e.target.value) : '')}
                     />
@@ -168,7 +187,7 @@ export default function AdminSettingsPage() {
                     <Input 
                       type="number" 
                       placeholder="100" 
-                      className="pl-14 h-12 rounded-xl bg-slate-50/50 border-slate-200 focus:bg-white transition-all text-lg font-bold"
+                      className="pl-14 h-12 rounded-xl bg-slate-50/50 text-slate-500 border-slate-200 focus:bg-white transition-all text-lg font-bold"
                       value={tokensPorM2}
                       onChange={(e) => setTokensPorM2(e.target.value ? Number(e.target.value) : '')}
                     />
@@ -219,7 +238,7 @@ export default function AdminSettingsPage() {
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Comercial</label>
                     <Input 
                       placeholder="Ej: Pinturerías, Sanitarios..." 
-                      className="rounded-xl border-slate-200 h-11"
+                      className="rounded-xl border-slate-200 text-slate-500 h-11"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                     />

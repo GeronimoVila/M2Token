@@ -17,6 +17,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface RemitoFormProps {
   projectId: string;
@@ -43,7 +44,11 @@ export default function RemitoForm({ projectId, token }: RemitoFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return alert('Por favor adjunta el PDF del remito');
+    if (!file) {
+      return toast.warning('Archivo faltante', {
+        description: 'Por favor adjunta el PDF del remito antes de continuar.'
+      });
+    }
 
     setLoading(true);
     try {
@@ -56,12 +61,17 @@ export default function RemitoForm({ projectId, token }: RemitoFormProps) {
         file: file
       }, token);
 
-      alert('✅ Remito cargado correctamente');
+      toast.success('¡Remito Cargado!', {
+        description: 'El documento se ha subido y registrado correctamente.'
+      });
+      
       router.refresh();
       router.push(`/proveedor/projects/${projectId}`);
 
     } catch (error: any) {
-      alert(`❌ Error: ${error.message || 'Falló la carga'}`);
+      toast.error('Error de carga', {
+        description: error.message || 'Ocurrió un error al subir el remito.'
+      });
     } finally {
       setLoading(false);
     }

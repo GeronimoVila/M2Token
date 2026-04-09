@@ -23,6 +23,7 @@ import {
   CreditCard,
   Hash
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function CompanyProfilePage() {
   const router = useRouter();
@@ -136,13 +137,18 @@ export default function CompanyProfilePage() {
         }
       }
 
-      alert("✅ Perfil actualizado correctamente");
+      toast.success("Perfil actualizado", {
+        description: "Tus datos se guardaron correctamente."
+      });
       setFormData(prev => ({ ...prev, password: '' }));
     } catch (error: any) {
       console.error(error);
       const backendError = error.response?.data?.error || error.response?.data?.message;
       const errorMsg = Array.isArray(backendError) ? backendError.join(', ') : backendError;
-      alert(`❌ Error: ${errorMsg || 'Ocurrió un error inesperado al actualizar'}`);
+      
+      toast.error("Error al actualizar", {
+        description: errorMsg || 'Ocurrió un error inesperado al guardar los cambios.'
+      });
     } finally {
       setSaving(false);
     }

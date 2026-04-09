@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Truck, Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 function ProfileFormContent() {
   const [loading, setLoading] = useState<"EMPRESA" | "PROVEEDOR" | "SUBMIT" | null>(null);
@@ -56,7 +57,9 @@ function ProfileFormContent() {
           router.push("/companies/onboarding");
         }
       } catch (error) {
-        alert("Error al procesar la selección. Inténtalo de nuevo.");
+        toast.error("Error de selección", {
+          description: "Hubo un error al procesar tu selección. Inténtalo de nuevo."
+        });
         setLoading(null);
       }
     } else {
@@ -83,10 +86,15 @@ function ProfileFormContent() {
         description: formData.description,
       });
 
+      toast.success("¡Perfil completado!", {
+        description: "Tus datos se han guardado correctamente."
+      });
       router.push("/proveedor");
     } catch (error) {
       console.error(error);
-      alert("Error al completar el perfil. Inténtalo de nuevo.");
+      toast.error("Error al guardar", {
+        description: "No se pudo completar el perfil. Verifica tu conexión e intenta nuevamente."
+      });
       setLoading(null);
     }
   };
@@ -147,7 +155,7 @@ function ProfileFormContent() {
                 <SelectContent>
                   {categories.map((cat) => (
                     <SelectItem key={cat._id} value={cat._id}>
-                      {cat.label}
+                      {cat.label || cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

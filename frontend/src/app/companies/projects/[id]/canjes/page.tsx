@@ -21,6 +21,7 @@ import {
   ArrowRightLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function CompanyProjectCanjesPage() {
   const router = useRouter();
@@ -81,13 +82,17 @@ export default function CompanyProjectCanjesPage() {
     setProcessingId(canje._id);
     try {
       const result = await canjesService.confirmPaymentAndBurn(canje._id);
-      
-      alert("¡Éxito! Tokens quemados correctamente. Hash: " + (result.txHash || 'Ok'));
+
+      toast.success("Tokens Quemados Exitosamente", {
+        description: `Transacción confirmada. Hash: ${result.txHash || 'Ok'}`
+      });
       
       handleRefresh();
     } catch (error: any) {
       console.error("Error en quema:", error);
-      alert("Error: " + (error.response?.data?.message || error.message));
+      toast.error("Error en la transacción", {
+         description: error.response?.data?.message || error.message || "No se pudo procesar la quema de tokens."
+      });
     } finally {
       setProcessingId(null);
     }

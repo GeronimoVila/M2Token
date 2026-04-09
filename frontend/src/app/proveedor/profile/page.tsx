@@ -25,6 +25,7 @@ import {
   CreditCard,
   Hash
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FormState extends Omit<UserProfileData, 'specialties'> {
   specialties: string;
@@ -133,7 +134,9 @@ export default function ProviderProfilePage() {
       }
 
       if (Object.keys(dataToSubmit).length === 0) {
-        alert("No hay cambios para actualizar.");
+        toast.info("Sin cambios", {
+            description: "No hay nuevos datos para actualizar."
+        });
         setSaving(false);
         return;
       }
@@ -143,11 +146,15 @@ export default function ProviderProfilePage() {
       setOriginalData(prev => ({ ...prev, ...formData }));
       setFormData(prev => ({ ...prev, password: '' })); 
       
-      alert("✅ Perfil actualizado correctamente");
+      toast.success("Perfil actualizado", {
+          description: "Tus datos se guardaron correctamente."
+      });
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message;
       const formattedError = Array.isArray(errorMsg) ? errorMsg.join("\n") : errorMsg;
-      alert(`❌ Error al actualizar:\n${formattedError}`);
+      toast.error("Error al actualizar", {
+          description: formattedError || "Ocurrió un error inesperado al guardar los cambios."
+      });
     } finally {
       setSaving(false);
     }

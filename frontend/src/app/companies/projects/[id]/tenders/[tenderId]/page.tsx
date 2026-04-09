@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function TenderDetailsPage() {
   const params = useParams();
@@ -76,11 +77,17 @@ export default function TenderDetailsPage() {
     setProcessingId(bid._id);
     try {
       await bidsService.adjudicate(bid._id);
-      alert('✅ ¡Licitación adjudicada exitosamente! El proveedor ya fue asignado al proyecto.');
+      
+      toast.success("¡Licitación Adjudicada!", {
+        description: "El proveedor ha sido asignado al proyecto exitosamente."
+      });
+      
       fetchData();
     } catch (error: any) {
       console.error("Error adjudicando:", error);
-      alert(error.response?.data?.message || 'Ocurrió un error al adjudicar la licitación.');
+      toast.error("Error en la Adjudicación", {
+        description: error.response?.data?.message || 'Ocurrió un error inesperado al procesar la solicitud.'
+      });
     } finally {
       setProcessingId(null);
     }
@@ -156,7 +163,7 @@ export default function TenderDetailsPage() {
             </div>
             <div className="flex flex-wrap items-center text-sm text-gray-500 font-medium gap-2">
               <span className="bg-gray-100 px-2.5 py-1 rounded-md text-brand-dark text-xs uppercase tracking-wider font-bold">
-                {tender.category?.label || 'Categoría Genérica'}
+                {tender.category?.label || tender.category?.name || 'Categoría Genérica'}
               </span>
               <span>Licitación publicada para el proyecto <strong className="text-brand-blue">{tender.project?.name}</strong></span>
             </div>

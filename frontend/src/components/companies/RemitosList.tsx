@@ -6,6 +6,7 @@ import { Eye, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 interface Remito {
   _id: string;
@@ -40,9 +41,16 @@ export default function RemitosList({ remitos, projectId, token, onUpdate, userR
     setProcessingId(id);
     try {
       await remitosService.validate(id, estado, token);
+      
+      toast.success(`Remito ${estado}`, {
+        description: `El documento ha sido marcado como ${estado} exitosamente.`
+      });
+      
       onUpdate();
     } catch (error) {
-      alert('Error al actualizar estado');
+      toast.error('Error al actualizar', {
+        description: 'Ocurrió un error al intentar cambiar el estado del remito.'
+      });
       console.error(error);
     } finally {
       setProcessingId(null);

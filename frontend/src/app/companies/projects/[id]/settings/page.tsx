@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save, Loader2, Building2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ProjectSettingsPage() {
   const params = useParams();
@@ -55,11 +56,18 @@ export default function ProjectSettingsPage() {
         budget: formData.budget ? Number(formData.budget) : undefined,
         status: formData.status
       });
-      alert('Proyecto actualizado exitosamente');
+      
+      toast.success('Proyecto actualizado', {
+        description: 'La configuración de la obra se ha guardado exitosamente.'
+      });
+      
       router.push(`/companies/projects/${projectId}`);
     } catch (error) {
       console.error("Error actualizando:", error);
-      alert('Hubo un error al actualizar el proyecto.');
+      
+      toast.error('Error al actualizar', {
+        description: 'Hubo un error al guardar el proyecto. Por favor, intenta nuevamente.'
+      });
     } finally {
       setSaving(false);
     }
@@ -102,7 +110,7 @@ export default function ProjectSettingsPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Estado del Proyecto</label>
               <Select value={formData.status} onValueChange={(val) => setFormData({...formData, status: val})}>
-                <SelectTrigger className="h-12 bg-slate-500 border-slate-900 rounded-xl">
+                <SelectTrigger className="h-12 bg-slate-50 text-slate-500 border-slate-200 rounded-xl">
                   <SelectValue placeholder="Selecciona un estado" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-slate-200">
@@ -117,7 +125,7 @@ export default function ProjectSettingsPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Descripción</label>
               <Input 
-                className="h-12 bg-slate-500 border-slate-200 rounded-xl"
+                className="h-12 bg-slate-50 text-slate-500 border-slate-200 rounded-xl"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Breve descripción del proyecto..."
@@ -127,7 +135,7 @@ export default function ProjectSettingsPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Dirección / Ubicación</label>
               <Input 
-                className="h-12 bg-slate-500 border-slate-200 rounded-xl"
+                className="h-12 bg-slate-50 text-slate-500 border-slate-200 rounded-xl"
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 placeholder="Ej: Av. Libertador 1234..."
@@ -140,7 +148,7 @@ export default function ProjectSettingsPage() {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">USD</span>
                 <Input 
                   type="number"
-                  className="pl-14 h-12 bg-slate-500 border-slate-200 rounded-xl"
+                  className="pl-14 h-12 bg-slate-50 text-slate-500 border-slate-200 rounded-xl"
                   value={formData.budget}
                   onChange={(e) => setFormData({...formData, budget: e.target.value})}
                   placeholder="0.00"
