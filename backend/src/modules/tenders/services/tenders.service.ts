@@ -4,12 +4,14 @@ import { Model, Types } from 'mongoose';
 import { Tender, TenderDocument, TenderStatus } from '../models/tender.model';
 import { CreateTenderDto } from '../dtos/create-tender.dto';
 import { AuditService } from '../../audit/services/audit.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TendersService {
   constructor(
     @InjectModel(Tender.name) private tenderModel: Model<TenderDocument>,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
+    private eventEmitter: EventEmitter2 
   ) {}
 
   async create(createTenderDto: CreateTenderDto, companyId: string, userId: string): Promise<Tender> {
@@ -21,6 +23,14 @@ export class TendersService {
     });
     
     const savedTender = await newTender.save();
+
+    const project = await this.tenderModel.db.model('projects').findById(createTenderDto.project).select('name');
+
+    this.eventEmitter.emit('tender.published', {
+      categoryId: createTenderDto.category,
+      projectName: project?.name || 'Nuevo Proyecto',
+      tenderId: savedTender._id.toString()
+    });
 
     await this.auditService.logAction(
       userId,

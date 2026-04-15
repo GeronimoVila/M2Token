@@ -5,6 +5,7 @@ import { Bid, BidDocument, BidStatus } from '../models/bid.model';
 import { CreateBidDto } from '../dtos/create-bid.dto';
 import { Tender, TenderDocument, TenderStatus } from '../../tenders/models/tender.model';
 import { AssignmentsService } from '../../project-assignments/services/assignments.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class BidsService {
@@ -12,6 +13,7 @@ export class BidsService {
     @InjectModel(Bid.name) private bidModel: Model<BidDocument>,
     @InjectModel(Tender.name) private tenderModel: Model<TenderDocument>,
     private readonly assignmentsService: AssignmentsService,
+    private eventEmitter: EventEmitter2
   ) {}
 
   async create(createBidDto: CreateBidDto, providerId: string): Promise<Bid> {
@@ -29,7 +31,22 @@ export class BidsService {
       tender: new Types.ObjectId(createBidDto.tender),
       provider: new Types.ObjectId(providerId),
     });
-    return newBid.save();
+    const savedBid = await newBid.save();
+
+    const tender = await this.tenderModel.findById(createBidDto.tender).populate('project');
+    const provider = await this.bidModel.db.model('users').findById(providerId).select('name razonSocial');
+
+    if (tender) {
+      this.eventEmitter.emit('bid.received', {
+        companyId: tender.company.toString(),
+        providerName: provider?.name || provider?.razonSocial || 'Un proveedor',
+        projectName: (tender.project as any)?.name || 'Proyecto',
+        tenderId: tender._id.toString(),
+        projectId: (tender.project as any)?._id.toString()
+      });
+    }
+
+    return savedBid;
   }
 
   async findByTender(tenderId: string): Promise<Bid[]> {
@@ -55,7 +72,7 @@ export class BidsService {
     const winningBid = await this.bidModel.findById(bidId);
     if (!winningBid) throw new NotFoundException('Postulación no encontrada');
 
-    const tender = await this.tenderModel.findById(winningBid.tender);
+    const tender = await this.tenderModel.findById(winningBid.tender).populate('project');
     if (!tender) throw new NotFoundException('Licitación no encontrada');
 
     if (tender.status !== TenderStatus.OPEN) {
@@ -64,6 +81,8 @@ export class BidsService {
 
     winningBid.status = BidStatus.ACCEPTED;
     await winningBid.save();
+
+    const rejectedBids = await this.bidModel.find({ tender: tender._id, _id: { $ne: winningBid._id } });
 
     await this.bidModel.updateMany(
       { tender: tender._id, _id: { $ne: winningBid._id } },
@@ -76,12 +95,25 @@ export class BidsService {
     await this.assignmentsService.assignProvider(
       companyId, 
       {
-        projectId: tender.project.toString(),
+        projectId: (tender.project as any)._id.toString(),
         providerId: winningBid.provider.toString(),
       }, 
       userId, 
       winningBid.amount
     );
+
+    this.eventEmitter.emit('bid.awarded', {
+      providerId: winningBid.provider.toString(),
+      projectName: (tender.project as any)?.name || 'Proyecto',
+      projectId: (tender.project as any)._id.toString()
+    });
+
+    rejectedBids.forEach(bid => {
+      this.eventEmitter.emit('bid.rejected', {
+        providerId: bid.provider.toString(),
+        projectName: (tender.project as any)?.name || 'Proyecto'
+      });
+    });
 
     return { 
       success: true, 

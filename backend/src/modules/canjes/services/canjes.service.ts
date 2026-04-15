@@ -7,6 +7,7 @@ import { BlockchainService } from '../../../blockchain/blockchain.service';
 import { UsersService } from '../../users/services/users.service';
 import { ProjectsService } from '../../projects/services/projects.service';
 import { AuditService } from '../../audit/services/audit.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CanjesService {
@@ -15,7 +16,8 @@ export class CanjesService {
     private readonly blockchainService: BlockchainService,
     private readonly usersService: UsersService,
     private readonly projectsService: ProjectsService,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
+    private eventEmitter: EventEmitter2
   ) {}
 
   async solicitarCanje(userId: string, dto: CreateCanjeDto) {
@@ -78,6 +80,16 @@ export class CanjesService {
       }
     );
 
+    if (projectDoc) {
+      this.eventEmitter.emit('canje.requested', {
+        companyId: projectDoc.companyId.toString(),
+        providerName: user.name || user.razonSocial || 'Un proveedor',
+        amount: savedCanje.amountTokens,
+        tipo: savedCanje.tipo,
+        projectId: savedCanje.projectId.toString()
+      });
+    }
+
     return savedCanje;
   }
 
@@ -115,9 +127,15 @@ export class CanjesService {
         { tipo: canje.tipo, montoM2T: canje.amountTokens, txHash: result.txHash }
       );
 
+      this.eventEmitter.emit('canje.completed', {
+        providerId: proveedor._id.toString(),
+        amount: canje.amountTokens,
+        tipo: canje.tipo
+      });
+
       return { success: true, txHash: result.txHash };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       throw new InternalServerErrorException('Error quemando tokens: ' + error.message);
     }

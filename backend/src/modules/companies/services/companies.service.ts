@@ -5,12 +5,14 @@ import { ICompany } from '../models/company.model';
 import { IUser } from '../../users/models/user.model';
 import { CreateCompanyDto } from '../dtos/create-company.dto';
 import { BaseRepository } from '../../../common/repositories/base.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CompaniesService extends BaseRepository<ICompany> {
   constructor(
     @InjectModel('companies') private readonly companyModel: Model<ICompany>,
     @InjectModel('users') private readonly userModel: Model<IUser>,
+    private eventEmitter: EventEmitter2
   ) {
     super(companyModel);
   }
@@ -39,6 +41,10 @@ export class CompaniesService extends BaseRepository<ICompany> {
       await this.delete(newCompany._id as string);
       throw new NotFoundException('Usuario propietario no encontrado.');
     }
+
+    this.eventEmitter.emit('company.registered', {
+      companyName: createCompanyDto.name || createCompanyDto.razonSocial || 'Nueva Empresa'
+    });
 
     return newCompany;
   }

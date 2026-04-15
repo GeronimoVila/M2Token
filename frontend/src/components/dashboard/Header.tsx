@@ -4,8 +4,9 @@ import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Bell, Search, HardHat, Building2 } from 'lucide-react';
+import { Search, HardHat, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import NotificationBell from '@/components/layout/NotificationBell';
 
 export function Header() {
   const pathname = usePathname();
@@ -50,14 +51,7 @@ export function Header() {
 
         <div className="flex items-center gap-3 sm:gap-4">
           
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="relative text-gray-500 hover:text-brand-dark hover:bg-brand-light/20 transition-colors rounded-full h-11 w-11"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-brand-salmon border-2 border-white animate-pulse"></span>
-          </Button>
+          <NotificationBell />
 
           <button className="h-11 w-11 rounded-full bg-gradient-to-br from-brand-light/40 to-brand-light/10 border border-brand-light/50 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-brand-blue/50 hover:border-brand-blue transition-all duration-300 shadow-sm">
             {user?.name ? (

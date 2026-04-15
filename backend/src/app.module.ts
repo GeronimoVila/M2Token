@@ -17,6 +17,8 @@ import { BidsModule } from './modules/bids/bids.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -62,6 +64,8 @@ import { SettingsModule } from './modules/settings/settings.module';
     DashboardModule,
     AuditModule,
     SettingsModule,
+    EventEmitterModule.forRoot(),
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

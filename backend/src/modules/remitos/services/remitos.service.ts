@@ -9,6 +9,7 @@ import { IpfsService } from './ipfs.service';
 import { BlockchainService } from '../../../blockchain/blockchain.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { SettingsService } from '../../settings/services/settings.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class RemitosService {
@@ -20,6 +21,7 @@ export class RemitosService {
     private readonly blockchainService: BlockchainService,
     private readonly auditService: AuditService,
     private readonly settingsService: SettingsService,
+    private eventEmitter: EventEmitter2
   ) {}
 
   async create(createRemitoDto: CreateRemitoDto, file: Express.Multer.File, proveedorId: string): Promise<IRemito> {
@@ -37,6 +39,16 @@ export class RemitosService {
 
       const project = await this.remitoModel.db.model('projects').findById(savedRemito.projectId).select('name companyId').exec();
       const company = project ? await this.remitoModel.db.model('companies').findById(project.companyId).select('name').exec() : null;
+      const provider = await this.remitoModel.db.model('users').findById(proveedorId).select('name razonSocial');
+
+      if (project) {
+        this.eventEmitter.emit('remito.submitted', {
+          companyId: project.companyId.toString(),
+          providerName: provider?.name || provider?.razonSocial || 'Un proveedor',
+          numeroRemito: savedRemito.numeroRemito,
+          projectId: savedRemito.projectId.toString()
+        });
+      }
 
       await this.auditService.logAction(
         proveedorId, 
@@ -80,9 +92,16 @@ export class RemitosService {
     remito.validatedBy = validatorId as any;
     remito.validatedAt = new Date();
 
-    if (remito.estado === 'validado' && !remito.txHash) {
+    if (remito.estado === 'validado') {
       const proveedor: any = remito.proveedorId;
       const walletAddress = proveedor.walletAddress;
+      
+      this.eventEmitter.emit('remito.validated', {
+        providerId: proveedor._id.toString(),
+        numeroRemito: remito.numeroRemito,
+        projectId: remito.projectId.toString()
+      });
+
       if (!walletAddress) throw new BadRequestException('El proveedor no tiene wallet configurada');
 
       const projectHex = remito.projectId.toString();
@@ -117,6 +136,12 @@ export class RemitosService {
       } catch (error: any) {
         throw new InternalServerErrorException('Error en Blockchain: ' + error.message);
       }
+    } else if (remito.estado === 'rechazado') {
+      this.eventEmitter.emit('remito.rejected', {
+        providerId: (remito.proveedorId as any)._id.toString(),
+        numeroRemito: remito.numeroRemito,
+        projectId: remito.projectId.toString()
+      });
     }
 
     const savedRemito = await remito.save();

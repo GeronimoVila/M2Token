@@ -5,12 +5,14 @@ import { IAssignment } from '../models/assignment.model';
 import { BaseRepository } from '../../../common/repositories/base.repository';
 import { CreateAssignmentDto } from '../dtos/create-assignment.dto';
 import { AuditService } from '../../audit/services/audit.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class AssignmentsService extends BaseRepository<IAssignment> {
   constructor(
     @InjectModel('project_assignments') private readonly assignmentModel: Model<IAssignment>,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
+    private eventEmitter: EventEmitter2
   ) {
     super(assignmentModel);
   }
@@ -65,6 +67,12 @@ export class AssignmentsService extends BaseRepository<IAssignment> {
         montoAdjudicado: montoAdjudicado 
       }
     );
+
+    this.eventEmitter.emit('project.assigned', {
+      providerId: providerId,
+      projectName: project?.name || 'Nuevo Proyecto',
+      projectId: projectId
+    });
 
     return savedAssignment;
   }

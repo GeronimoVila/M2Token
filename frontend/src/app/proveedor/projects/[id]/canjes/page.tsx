@@ -60,7 +60,6 @@ export default function ProjectCanjesPage() {
     }
   }, [projectId]);
 
-  // 🔥 Badges Semánticos Premium
   const getStatusBadge = (estado: string) => {
     switch (estado) {
       case 'PENDIENTE':
@@ -96,7 +95,6 @@ export default function ProjectCanjesPage() {
     }
   };
 
-  // 💀 Skeleton Loading Premium
   if (loading && !project) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8 animate-pulse min-h-screen">
@@ -115,7 +113,6 @@ export default function ProjectCanjesPage() {
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-6rem)]">
       
-      {/* 🚀 HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-start sm:items-center gap-4">
            <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl border-gray-200 text-gray-500 hover:text-brand-dark hover:bg-gray-100 shrink-0 transition-colors" onClick={() => router.back()}>
@@ -134,14 +131,11 @@ export default function ProjectCanjesPage() {
            </div>
         </div>
         
-        {/* Aquí asumimos que CreateCanjeModal renderiza un botón propio. 
-            Si su diseño desentona, podrías editar ese componente por separado para que tenga clases como "bg-brand-blue rounded-xl" */}
         <div className="shrink-0">
           <CreateCanjeModal projectId={projectId} onSuccess={fetchData} />
         </div>
       </div>
 
-      {/* 📋 TABLA HISTORIAL */}
       <Card className="rounded-2xl border-gray-100 shadow-md shadow-brand-dark/5 overflow-hidden bg-white">
         <div className="h-1.5 w-full bg-brand-dark" />
         <CardHeader className="flex flex-row items-center justify-between bg-white border-b border-gray-50 pb-4 pt-6">
