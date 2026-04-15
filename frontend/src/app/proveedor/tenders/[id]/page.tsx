@@ -21,6 +21,7 @@ import {
   MessageSquareText
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function TenderApplyPage() {
   const params = useParams();
@@ -53,6 +54,7 @@ export default function TenderApplyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || amount <= 0) {
+      toast.warning("Monto inválido", { description: "Por favor, ingresa un monto válido por m²." });
       setError("Ingresa un monto válido por m².");
       return;
     }
@@ -65,9 +67,26 @@ export default function TenderApplyPage() {
         amount: Number(amount),
         message
       });
+      toast.success("¡Propuesta enviada!", { description: "Tu oferta ha sido registrada exitosamente." });
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Error al enviar la postulación.');
+      const backendData = err.response?.data;
+      const extractedMsg = backendData?.message || backendData?.error || err.message;
+      const errorMsg = Array.isArray(extractedMsg) ? extractedMsg.join(', ') : String(extractedMsg);
+      
+      if (
+        errorMsg.includes('Ya enviaste') || 
+        errorMsg.includes('propuesta') || 
+        err.response?.status === 400
+      ) {
+        toast.warning("Oferta Duplicada", {
+          description: "Solo se permite enviar una propuesta por licitación. Ya hemos registrado tu oferta anterior."
+        });
+        setError("Solo se permite una propuesta por licitación.");
+      } else {
+        toast.error("Error al enviar", { description: errorMsg });
+        setError(errorMsg);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -205,8 +224,8 @@ export default function TenderApplyPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {error && (
-                    <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <div className="p-3 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium border border-amber-200 flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                       {error}
                     </div>
                   )}

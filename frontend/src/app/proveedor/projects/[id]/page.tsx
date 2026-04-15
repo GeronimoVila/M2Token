@@ -20,7 +20,8 @@ import {
   ArrowRightLeft,
   Inbox,
   ShieldCheck,
-  Building2
+  Building2,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -254,13 +255,14 @@ export default function ProviderProjectDetail() {
                   <th className="px-6 py-4">N° Remito / Factura</th>
                   <th className="px-6 py-4">Monto Solicitado</th>
                   <th className="px-6 py-4">Estado de Revisión</th>
-                  <th className="px-6 py-4 text-right">Documentos & Blockchain</th>
+                  <th className="px-6 py-4">Documentos</th>
+                  <th className="px-6 py-4 text-right">Blockchain Tx</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {remitos.length === 0 ? (
                     <tr>
-                        <td colSpan={5} className="py-16">
+                        <td colSpan={6} className="py-16">
                            <div className="flex flex-col items-center justify-center text-center">
                               <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                 <Inbox className="h-8 w-8 text-gray-400" />
@@ -287,18 +289,7 @@ export default function ProviderProjectDetail() {
                                 {getStatusBadge(r.estado)}
                             </td>
                             <td className="px-6 py-4">
-                                <div className="flex items-center justify-end gap-3">
-                                  {r.txHash ? (
-                                    <span className="inline-flex items-center px-2 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded text-[10px] font-bold uppercase tracking-wider gap-1" title="Asegurado en Blockchain">
-                                      <Coins className="w-3 h-3"/> Tokenizado
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center px-2 py-1 bg-gray-50 text-gray-400 border border-gray-100 rounded text-[10px] font-bold uppercase tracking-wider gap-1">
-                                      Pendiente
-                                    </span>
-                                  )}
-                                  
-                                  {(r.evidenceHash || r.pdfCID) && (
+                                {(r.evidenceHash || r.pdfCID) ? (
                                     <a 
                                         href={`https://gateway.pinata.cloud/ipfs/${r.evidenceHash || r.pdfCID}`} 
                                         target="_blank" 
@@ -308,8 +299,25 @@ export default function ProviderProjectDetail() {
                                     >
                                         <FileText className="w-4 h-4"/>
                                     </a>
-                                  )}
-                                </div>
+                                ) : (
+                                    <span className="text-gray-400 text-xs font-medium">Sin documento</span>
+                                )}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {r.txHash ? (
+                                <a 
+                                  href={`https://sepolia.etherscan.io/tx/${r.txHash}`} 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors"
+                                  title="Ver transacción en el explorador"
+                                >
+                                    {r.txHash.slice(0, 8)}...{r.txHash.slice(-4)}
+                                    <ExternalLink className="w-3 h-3" />
+                                </a>
+                              ) : (
+                                <span className="text-gray-400 text-xs font-medium">No disponible</span>
+                              )}
                             </td>
                         </tr>
                     ))

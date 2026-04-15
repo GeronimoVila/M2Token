@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido."),
@@ -37,7 +38,15 @@ function LoginFormContent() {
     if (urlError === "account_suspended") {
       setFormError("Tu sesión ha sido cerrada porque tu cuenta fue suspendida.");
     }
-  }, [urlError]);
+    
+    if (message === "company_created") {
+      toast.success("¡Empresa creada con éxito!", {
+        description: "Por favor, inicia sesión nuevamente.",
+        duration: 6000,
+      });
+      router.replace('/auth/login', { scroll: false });
+    }
+  }, [urlError, message, router]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -102,12 +111,14 @@ function LoginFormContent() {
                 <AlertDescription>Ahora puedes iniciar sesión con tu cuenta.</AlertDescription>
               </Alert>
             )}
-            {message && (
+            
+            {message && message !== "company_created" && (
               <Alert className="border-blue-500 text-blue-700 bg-blue-50">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
+            
             {formError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />

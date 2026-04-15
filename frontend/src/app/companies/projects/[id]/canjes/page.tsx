@@ -18,7 +18,8 @@ import {
   CheckCircle2, 
   Flame, 
   Inbox,
-  ArrowRightLeft
+  ArrowRightLeft,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -191,13 +192,14 @@ export default function CompanyProjectCanjesPage() {
                     <th className="px-6 py-4">Tipo</th>
                     <th className="px-6 py-4">Monto Solicitado</th>
                     <th className="px-6 py-4">Estado</th>
+                    <th className="px-6 py-4">Blockchain Tx</th>
                     <th className="px-6 py-4 text-right">Acción Financiera</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 bg-white">
                   {canjes.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-16">
+                      <td colSpan={7} className="py-16">
                         <div className="flex flex-col items-center justify-center text-center">
                           <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                             <Inbox className="h-8 w-8 text-gray-400" />
@@ -231,6 +233,23 @@ export default function CompanyProjectCanjesPage() {
                         <td className="px-6 py-4">
                           {getStatusBadge(c.estado)}
                         </td>
+                        <td className="px-6 py-4">
+                          {c.txHash ? (
+                            <a 
+                              href={`https://sepolia.etherscan.io/tx/${c.txHash}`} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors"
+                              title="Ver transacción en el explorador"
+                            >
+                                {c.txHash.slice(0, 8)}...{c.txHash.slice(-4)}
+                                <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 text-xs font-medium">No disponible</span>
+                          )}
+                        </td>
+
                         <td className="px-6 py-4 text-right">
                           {c.estado === 'PENDIENTE' && (
                             <Button 

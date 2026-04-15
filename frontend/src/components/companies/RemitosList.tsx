@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { remitosService } from '@/services/remitosService';
-import { Eye, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, FileText, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ interface Remito {
   fechaEntrega: string;
   estado: 'pendiente' | 'validado' | 'rechazado';
   evidenceHash: string;
+  txHash?: string;
   proveedorId: {
     name: string;
     email: string;
@@ -76,6 +77,7 @@ export default function RemitosList({ remitos, projectId, token, onUpdate, userR
                 <th className="px-4 py-3">Proveedor</th>
                 <th className="px-4 py-3">Monto</th>
                 <th className="px-4 py-3">Evidencia</th>
+                <th className="px-4 py-3">Blockchain Tx</th>
                 <th className="px-4 py-3">Estado</th>
                 {canValidate && (
                   <th className="px-4 py-3 text-right">Acciones</th>
@@ -85,7 +87,7 @@ export default function RemitosList({ remitos, projectId, token, onUpdate, userR
             <tbody className="divide-y divide-gray-100">
               {remitos.length === 0 && (
                 <tr>
-                  <td colSpan={canValidate ? 7 : 6} className="text-center py-8 text-gray-500">
+                  <td colSpan={canValidate ? 8 : 7} className="text-center py-8 text-gray-500">
                     No hay remitos cargados aún.
                   </td>
                 </tr>
@@ -121,6 +123,24 @@ export default function RemitosList({ remitos, projectId, token, onUpdate, userR
                       Ver PDF
                     </Button>
                   </td>
+                  
+                  <td className="px-4 py-3">
+                    {remito.txHash ? (
+                      <a 
+                        href={`https://sepolia.etherscan.io/tx/${remito.txHash}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors"
+                        title="Ver transacción en el explorador"
+                      >
+                          {remito.txHash.slice(0, 8)}...{remito.txHash.slice(-4)}
+                          <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 text-xs font-medium">No disponible</span>
+                    )}
+                  </td>
+
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
                       ${remito.estado === 'validado' ? 'bg-green-100 text-green-800' : 

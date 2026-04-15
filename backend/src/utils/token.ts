@@ -11,7 +11,7 @@ const toSeconds = (value: string | undefined, fallback: string): number => {
   return Math.floor(msValue / 1000);
 };
 
-const jwtOptions: jwt.SignOptions = { expiresIn: toSeconds(process.env.JWT_EXPIRES_IN, '15m') };
+const jwtOptions: jwt.SignOptions = { expiresIn: toSeconds(process.env.JWT_EXPIRES_IN, '30m') };
 const refreshOptions: jwt.SignOptions = { expiresIn: toSeconds(process.env.REFRESH_TOKEN_EXPIRES_IN, '7d') };
 
 export interface JwtPayload {

@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usersService } from "@/services/usersService";
 import { getActiveCategories } from "@/services/categoriesService";
+// 👇 1. Agregamos el servicio de asignaciones
+import { assignmentsService } from '@/services/assignmentsService';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -26,6 +28,8 @@ import {
   CheckCircle2,
   Filter
 } from 'lucide-react';
+// 👇 2. Agregamos toast de sonner
+import { toast } from 'sonner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -47,6 +51,9 @@ export default function AssignedProvidersPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [locationTerm, setLocationTerm] = useState("");
   const { user, isLoading: isAuthLoading } = useAuthStore();
+  
+  // 👇 3. Estado para saber qué proveedor estamos asignando y mostrar el spinner
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthLoading && user) {
@@ -56,35 +63,36 @@ export default function AssignedProvidersPage() {
     }
   }, [user, isAuthLoading, router]);
 
+  // 👇 4. Extraemos fetchAssignments a un useCallback para poder llamarlo después de asignar
+  const fetchAssignments = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('access_token') || '';
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/assignments/project/${projectId}`, {
+        headers,
+        credentials: 'include', 
+      });
+      const json = await res.json();
+      
+      if (!res.ok) {
+         throw new Error(json.message || "Error al cargar proveedores");
+      }
+
+      const dataToSet = json.success ? json.data : json;
+      setGroupedProviders(typeof dataToSet === 'object' && !Array.isArray(dataToSet) ? dataToSet : {});
+    } catch (error) {
+      console.error("Error cargando asignaciones:", error);
+    } finally {
+      setLoadingAssigned(false);
+    }
+  }, [projectId]);
+
   useEffect(() => {
     if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) return;
-
-    async function fetchAssignments() {
-      try {
-        const token = localStorage.getItem('access_token') || '';
-        const headers: HeadersInit = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(`${API_URL}/assignments/project/${projectId}`, {
-          headers,
-          credentials: 'include', 
-        });
-        const json = await res.json();
-        
-        if (!res.ok) {
-           throw new Error(json.message || "Error al cargar proveedores");
-        }
-
-        const dataToSet = json.success ? json.data : json;
-        setGroupedProviders(typeof dataToSet === 'object' && !Array.isArray(dataToSet) ? dataToSet : {});
-      } catch (error) {
-        console.error("Error cargando asignaciones:", error);
-      } finally {
-        setLoadingAssigned(false);
-      }
-    }
     fetchAssignments();
-  }, [projectId, isAuthLoading, user]);
+  }, [fetchAssignments, isAuthLoading, user]);
 
   useEffect(() => {
     if (isAuthLoading || (user && (user.role === 'empresa_approver' || user.role === 'empresa_viewer'))) return;
@@ -125,6 +133,30 @@ export default function AssignedProvidersPage() {
     setSearchTerm("");
     setSelectedCategory("all");
     setLocationTerm("");
+  };
+
+  // 👇 5. Agregamos la función que hace el contrato real en esta misma vista
+  const handleAssign = async (providerId: string) => {
+    setAssigningId(providerId);
+    try {
+      await assignmentsService.assignProvider({ projectId, providerId });
+      
+      toast.success("Proveedor asignado", {
+        description: "El profesional ha sido incorporado al proyecto exitosamente."
+      });
+      
+      // Cambiamos a la vista de "Asignados" y recargamos la lista
+      setViewMode('assigned');
+      fetchAssignments();
+      
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || error.message;
+      toast.error("No se pudo asignar", {
+        description: errorMsg || 'Es posible que este proveedor ya esté asignado a la obra.'
+      });
+    } finally {
+      setAssigningId(null);
+    }
   };
 
   const assignedCategoriesKeys = Object.keys(groupedProviders);
@@ -198,7 +230,7 @@ export default function AssignedProvidersPage() {
                <div className="w-20 h-20 bg-brand-blue/10 rounded-full flex items-center justify-center mb-6">
                   <Users className="h-10 w-10 text-brand-blue" />
                </div>
-               <h3 className="text-2xl font-bold text-brand-dark mb-2">Sin proveedores asignado</h3>
+               <h3 className="text-2xl font-bold text-brand-dark mb-2">Sin proveedores asignados</h3>
                <p className="text-gray-500 max-w-md mx-auto mb-8">
                  Actualmente no hay proveedores trabajando en esta obra. Explora el directorio para reclutar.
                </p>
@@ -375,11 +407,17 @@ export default function AssignedProvidersPage() {
                              <span className="line-clamp-1 max-w-[150px] sm:max-w-[180px]">{provider.address || 'Ubicación no especificada'}</span>
                           </div>
                           
+                          {/* 👇 6. Actualizamos el botón para que ejecute la nueva función */}
                           <Button 
                             className="bg-brand-salmon hover:bg-brand-salmon/90 text-white w-full sm:w-auto rounded-xl shadow-md shadow-brand-salmon/20 transition-transform hover:-translate-y-0.5"
-                            onClick={() => router.push(`/companies/projects/${projectId}/assign/new?providerId=${provider._id}`)}
+                            onClick={() => handleAssign(provider._id)}
+                            disabled={assigningId === provider._id}
                           >
-                            <UserPlus className="h-4 w-4 mr-2" /> Asignar a Obra
+                            {assigningId === provider._id ? (
+                              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Asignando...</>
+                            ) : (
+                              <><UserPlus className="h-4 w-4 mr-2" /> Asignar a Obra</>
+                            )}
                           </Button>
                       </div>
                     </div>
