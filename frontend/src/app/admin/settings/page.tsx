@@ -123,40 +123,45 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    // 👇 1. Quitamos los paddings extra en móvil y centramos el contenedor global
+    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12 w-full">
       
       <Tabs defaultValue="tokenization" className="w-full">
-        <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-slate-100 p-1 text-slate-500 mb-8">
-          <TabsTrigger 
-            value="tokenization" 
-            className="rounded-lg px-6 py-2 text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-brand-blue data-[state=active]:shadow-sm"
-          >
-            Economía & Tokens
-          </TabsTrigger>
-          <TabsTrigger 
-            value="categories" 
-            className="rounded-lg px-6 py-2 text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-brand-blue data-[state=active]:shadow-sm"
-          >
-            Catálogo de Rubros
-          </TabsTrigger>
-        </TabsList>
+        {/* 👇 2. Contenedor de Tabs seguro contra desbordes */}
+        <div className="flex sm:justify-center w-full overflow-x-auto pb-2 mb-4 sm:pb-0 sm:mb-8 hide-scrollbar">
+          <TabsList className="inline-flex h-auto sm:h-12 items-center rounded-xl bg-slate-100 p-1 text-slate-500 min-w-max">
+            <TabsTrigger 
+              value="tokenization" 
+              className="rounded-lg px-4 sm:px-6 py-2.5 sm:py-2 text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-brand-blue data-[state=active]:shadow-sm"
+            >
+              Economía & Tokens
+            </TabsTrigger>
+            <TabsTrigger 
+              value="categories" 
+              className="rounded-lg px-4 sm:px-6 py-2.5 sm:py-2 text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:text-brand-blue data-[state=active]:shadow-sm"
+            >
+              Catálogo de Rubros
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="tokenization" className="mt-0 outline-none">
-          <Card className="border-none shadow-md max-w-3xl bg-white overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 shadow-sm border border-amber-100">
+        <TabsContent value="tokenization" className="mt-0 outline-none w-full">
+          {/* 👇 3. Aseguramos que mx-auto quede siempre activo (eliminamos lg:mx-0) */}
+          <Card className="border-none shadow-md max-w-3xl mx-auto bg-white overflow-hidden w-full">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 shrink-0">
                   <Coins className="w-6 h-6" />
                 </div>
                 <div>
                   <CardTitle className="text-xl font-bold text-slate-800">Variables Maestras del Token</CardTitle>
-                  <CardDescription className="text-slate-500 font-medium">Control de la matemática financiera de M2T</CardDescription>
+                  <CardDescription className="text-slate-500 font-medium mt-1">Control de la matemática financiera de M2T</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-8 space-y-8">
+            <CardContent className="p-4 sm:p-8 space-y-8">
               
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                 <div className="space-y-3">
                   <label className="text-xs font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     Precio M2 Sugerido (USD)
@@ -167,7 +172,7 @@ export default function AdminSettingsPage() {
                     <Input 
                       type="number" 
                       placeholder="1000" 
-                      className="pl-14 h-12 rounded-xl bg-slate-50/50 text-slate-500 border-slate-200 focus:bg-white transition-all text-lg font-bold"
+                      className="pl-14 h-12 rounded-xl bg-slate-50/50 text-slate-500 border-slate-200 focus:bg-white transition-all text-lg font-bold w-full"
                       value={precioM2}
                       onChange={(e) => setPrecioM2(e.target.value ? Number(e.target.value) : '')}
                     />
@@ -187,7 +192,7 @@ export default function AdminSettingsPage() {
                     <Input 
                       type="number" 
                       placeholder="100" 
-                      className="pl-14 h-12 rounded-xl bg-slate-50/50 text-slate-500 border-slate-200 focus:bg-white transition-all text-lg font-bold"
+                      className="pl-14 h-12 rounded-xl bg-slate-50/50 text-slate-500 border-slate-200 focus:bg-white transition-all text-lg font-bold w-full"
                       value={tokensPorM2}
                       onChange={(e) => setTokensPorM2(e.target.value ? Number(e.target.value) : '')}
                     />
@@ -208,11 +213,11 @@ export default function AdminSettingsPage() {
               </div>
 
             </CardContent>
-            <CardFooter className="bg-slate-50/80 border-t border-slate-100 p-6 flex justify-end">
+            <CardFooter className="bg-slate-50/80 border-t border-slate-100 p-4 sm:p-6 flex justify-end">
               <Button 
                 onClick={handleSaveGlobal} 
                 disabled={savingGlobal} 
-                className="h-11 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white font-bold px-8 shadow-md shadow-brand-blue/20 transition-all"
+                className="w-full sm:w-auto h-12 sm:h-11 rounded-xl bg-brand-blue hover:bg-brand-blue/90 text-white font-bold px-8 shadow-md shadow-brand-blue/20 transition-all text-base sm:text-sm"
               >
                 {savingGlobal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Guardar Configuración
@@ -221,24 +226,24 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="categories" className="mt-0 outline-none">
-          <div className="grid md:grid-cols-5 gap-8">
+        <TabsContent value="categories" className="mt-0 outline-none w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 max-w-6xl mx-auto">
             
-            <Card className="md:col-span-2 border-none shadow-md h-fit bg-white overflow-hidden">
-              <CardHeader className="bg-emerald-50/30 border-b border-emerald-50">
+            <Card className="lg:col-span-2 border-none shadow-md h-fit bg-white overflow-hidden order-first lg:order-none">
+              <CardHeader className="bg-emerald-50/30 border-b border-emerald-50 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold flex items-center gap-2 text-emerald-700">
                   <Plus className="w-5 h-5" />
                   Nuevo Rubro
                 </CardTitle>
-                <CardDescription className="text-emerald-600/60">Categorización para proveedores</CardDescription>
+                <CardDescription className="text-emerald-600/60 mt-1">Categorización para proveedores</CardDescription>
               </CardHeader>
-              <CardContent className="pt-6">
-                <form onSubmit={handleAddCategory} className="space-y-4">
+              <CardContent className="p-4 sm:p-6">
+                <form onSubmit={handleAddCategory} className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Comercial</label>
                     <Input 
                       placeholder="Ej: Pinturerías, Sanitarios..." 
-                      className="rounded-xl border-slate-200 text-slate-500 h-11"
+                      className="rounded-xl border-slate-200 text-slate-500 h-12 sm:h-11 w-full"
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
                     />
@@ -246,7 +251,7 @@ export default function AdminSettingsPage() {
                   <Button 
                     type="submit" 
                     disabled={addingCategory || !newCategoryName} 
-                    className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-200 transition-all"
+                    className="w-full h-12 sm:h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-200 transition-all text-base sm:text-sm"
                   >
                     {addingCategory ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                     Agregar al Sistema
@@ -255,14 +260,14 @@ export default function AdminSettingsPage() {
               </CardContent>
             </Card>
 
-            <Card className="md:col-span-3 border-none shadow-md bg-white overflow-hidden">
-              <CardHeader className="border-b border-slate-50">
-                <div className="flex items-center justify-between">
+            <Card className="lg:col-span-3 border-none shadow-md bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-50 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
                   <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-800">
                     <Briefcase className="w-5 h-5 text-brand-blue" />
                     Categorías Activas
                   </CardTitle>
-                  <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-extrabold border border-slate-200">
+                  <span className="px-3 py-1.5 sm:py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-extrabold border border-slate-200 w-fit">
                     {categories.length} RUBROS
                   </span>
                 </div>
@@ -271,20 +276,20 @@ export default function AdminSettingsPage() {
                 {categories.length > 0 ? (
                   <div className="divide-y divide-slate-50 max-h-[500px] overflow-y-auto">
                     {categories.map((cat: any) => (
-                      <div key={cat._id || cat.id} className="flex items-center justify-between px-6 py-4 group hover:bg-slate-50/50 transition-colors">
+                      <div key={cat._id || cat.id} className="flex items-center justify-between p-4 sm:px-6 sm:py-4 group hover:bg-slate-50/50 transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-[10px] group-hover:bg-brand-blue group-hover:text-white transition-colors">
+                          <div className="h-10 w-10 sm:h-8 sm:w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs sm:text-[10px] shrink-0 group-hover:bg-brand-blue group-hover:text-white transition-colors">
                             {cat.name.substring(0, 1).toUpperCase()}
                           </div>
-                          <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{cat.name}</span>
+                          <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors line-clamp-1 pr-2">{cat.name}</span>
                         </div>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           onClick={() => handleDeleteCategory(cat._id || cat.id)} 
-                          className="rounded-full text-slate-300 hover:text-brand-salmon hover:bg-brand-salmon/10 transition-all"
+                          className="rounded-full h-10 w-10 sm:h-9 sm:w-9 text-slate-300 hover:text-brand-salmon hover:bg-brand-salmon/10 transition-all shrink-0"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                         </Button>
                       </div>
                     ))}
